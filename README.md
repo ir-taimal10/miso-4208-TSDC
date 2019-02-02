@@ -7,5 +7,5 @@
 Proyecto desarrollado para la aplicación de conocimientos aprendidos en la clase de 201910_MISO4208_01 - PRUEBAS AUTOMÁTICAS
 
 Integrantes:
-Ivan Ricardo Taimal Narváez
-Fredy Gonzalo Captuayo Novoa
+* Ivan Ricardo Taimal Narváez
+* Fredy Gonzalo Captuayo Novoa
