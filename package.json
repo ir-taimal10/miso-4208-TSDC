@@ -4,7 +4,7 @@
   "description": "",
   "main": "AppStart.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "tsc": "tsc",
     "build:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
     "build:release": "tsc && node ./build/AppStart.js"

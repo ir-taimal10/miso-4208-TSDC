@@ -1,6 +1,3 @@
-declare var page: any;
-declare var document: any;
-
 describe('Form in normal state', () => {
     beforeAll(async () => {
         await page.goto('https://angular-6-registration-login-example.stackblitz.io/register');
