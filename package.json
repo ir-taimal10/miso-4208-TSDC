@@ -4,6 +4,7 @@
   "description": "",
   "main": "AppStart.js",
   "scripts": {
+    "test": "jest",
     "tsc": "tsc",
     "build:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
     "build:release": "tsc && node ./build/AppStart.js"
@@ -16,16 +17,23 @@
   "license": "ISC",
   "dependencies": {
     "@types/express": "^4.16.1",
+    "@types/jest": "^24.0.0",
     "compression": "^1.7.3",
     "cookie-parser": "^1.4.3",
+    "cypress": "^3.1.5",
     "dmn-moddle": "^6.0.0",
     "express": "^4.16.4",
     "fs-extra": "^7.0.1",
+    "jest": "^24.1.0",
+    "jest-puppeteer": "^3.9.0",
     "loglevel": "^1.6.1",
     "method-override": "^3.0.0",
+    "node-run-cmd": "^1.0.1",
     "path": "^0.12.7",
+    "puppeteer": "^1.12.2",
     "ts-express-decorators": "^5.1.1",
     "ts-node-dev": "^1.0.0-pre.32",
-    "typescript": "^3.3.3"
+    "typescript": "^3.3.3",
+    "xml2js": "^0.4.19"
   }
 }
