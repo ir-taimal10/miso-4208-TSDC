@@ -6,8 +6,6 @@ import {UtilsService} from "../../TestingTool.Runner/utils/UtilsService";
 export class TestController {
     @Get("/:id")
     async get(request: Express.Request, response: Express.Response): Promise<any>{
-    const util =  new  UtilsService();
-    util.executeCommand(`npm.cmd run test`).then(response => console.log(response));
         return {id: request.params.id, name: "test"};
     }
 }

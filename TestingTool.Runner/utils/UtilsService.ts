@@ -91,17 +91,7 @@ export class UtilsService {
     };
 
     public executeCommand = command => {
-        return new Promise((resolve, reject) => {
-            console.log(`UtilsService executeCommand start: command = ${command}`);
-            node_cmd.run(command)
-                .then(function (exitCodes) {
-                    console.log(`UtilsService executeCommand ends: exitCodes = ${exitCodes}`);
-                    resolve();
-                }, function (err) {
-                    console.log(`UtilsService executeCommand ends: error = ${err}`);
-                    reject(err);
-                });
-        });
+           return  node_cmd.run(command);
     };
 
     public executeCommandsWithOptions = (commands, options) => {

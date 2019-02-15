@@ -1,9 +1,9 @@
-describe('Form in normal state', () => {
+describe('Login in limesurvey', () => {
     beforeAll(async () => {
         await page.goto('https://angular-6-registration-login-example.stackblitz.io/register');
     });
 
-    it('Form should load without error', async () => {
+    it('Login should load without error', async () => {
         await expect(await page.waitForSelector(".container h2"));
         const text = await page.evaluate(() => document.body.textContent);
         expect(text).toContain('Register');
@@ -11,30 +11,30 @@ describe('Form in normal state', () => {
         await page.screenshot({path: './screenshot.png'});
     });
 
-    it('Form should have a title', async () => {
+    it('Login should have a title', async () => {
         await expect(page.title()).resolves.toMatch('');
         await expect(await page.waitForSelector(".container h2"));
     });
 
-    it('Form should have a firstName field', async () => {
+    it('Login should have a firstName field', async () => {
         await expect(await page.waitForSelector(".container input[ng-reflect-name='firstName']"));
     });
 
-    it('Form should have a lastName field', async () => {
+    it('Login should have a lastName field', async () => {
         await expect(await page.waitForSelector(".container input[ng-reflect-name='lastName']"));
     });
-    it('Form should have a username field', async () => {
+    it('Login should have a username field', async () => {
         await expect(await page.waitForSelector(".container input[ng-reflect-name='username']"));
     });
-    it('Form should have a password field', async () => {
+    it('Login should have a password field', async () => {
         await expect(await page.waitForSelector(".container input[ng-reflect-name='password']"));
     });
 
-    it('Form should have a ok button field', async () => {
+    it('Login should have a ok button field', async () => {
         await expect(await page.waitForSelector(".container .btn-primary"));
     });
 
-    it('Form should have a Cancel button field', async () => {
+    it('Login should have a Cancel button field', async () => {
         await expect(await page.waitForSelector(".container .btn-link"));
     });
 

@@ -283,3 +283,5 @@ Thumbs.db
 .idea/vcs.xml
 
 **/build/**/**
+**/reports/**/**
+*screenshot.png

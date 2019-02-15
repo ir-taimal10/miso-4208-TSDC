@@ -1,5 +1,6 @@
 import {ServerLoader, ServerSettings} from "@tsed/common";
 import Path = require("path");
+import {Scheduler} from "./TestingTool.Runner/utils/Scheduler";
 
 @ServerSettings({
     rootDir: Path.resolve(__dirname),
@@ -9,6 +10,9 @@ import Path = require("path");
     uploadDir: "${rootDir}/uploads",
     mount: {
         "/api": "${rootDir}/**/Controllers/**\/*Controller.ts"
+    },
+    statics: {
+        "/": "${rootDir}/reports"
     }
 })
 export class Server extends ServerLoader {
@@ -36,6 +40,8 @@ export class Server extends ServerLoader {
 
     public $onReady() {
         console.log('Server started...');
+        const scheduler = new Scheduler();
+        scheduler.start("* * * * *");
     }
 
     public $onServerInitError(err) {
