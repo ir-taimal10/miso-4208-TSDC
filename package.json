@@ -4,6 +4,7 @@
   "description": "",
   "main": "AppStart.js",
   "scripts": {
+    "start":"npm run server",
     "test": "jest --detectOpenHandles",
     "tsc": "tsc",
     "server:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
