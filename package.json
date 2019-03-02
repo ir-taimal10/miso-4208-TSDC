@@ -5,7 +5,8 @@
   "main": "AppStart.js",
   "scripts": {
     "start":"npm run server",
-    "test": "jest --detectOpenHandles",
+    "test": "echo \"test specified\" && exit 1",
+    "test:e2e": "jest --detectOpenHandles",
     "tsc": "tsc",
     "server:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
     "server": "tsc && node ./build/AppStart.js"
