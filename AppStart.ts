@@ -5,8 +5,7 @@ import {Scheduler} from "./TestingTool.Runner/utils/Scheduler";
 @ServerSettings({
     rootDir: Path.resolve(__dirname),
     acceptMimes: ["application/json"],
-    port: 8080,
-    httpsPort: 8000,
+    port: process.env.PORT || 8080,
     uploadDir: "${rootDir}/uploads",
     mount: {
         "/api": "${rootDir}/**/Controllers/**\/*Controller.ts"
@@ -40,6 +39,8 @@ export class Server extends ServerLoader {
 
     public $onReady() {
         console.log('Server started...');
+        console.log('Statics ${rootDir}/reports');
+
         const scheduler = new Scheduler();
         scheduler.start("* * * * *");
     }
