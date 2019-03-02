@@ -10,9 +10,9 @@ export class Scheduler {
         Cron.schedule(period, async () => {
             const util = new UtilsService();
             const platform = process.platform;
-            let command = `cmd run test`;
+            let command = `cmd run test:e2e`;
             if (platform == 'win32') {
-                command = `npm.cmd run test`;
+                command = `npm.cmd run test:e2e`;
             }
             await util.executeCommand(command)
                 .then(response => console.log("output", response));
