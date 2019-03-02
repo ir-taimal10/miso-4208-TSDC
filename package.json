@@ -37,9 +37,9 @@
     "ts-express-decorators": "^5.1.1",
     "ts-node-dev": "^1.0.0-pre.32",
     "typescript": "^3.3.3",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "jest-html-reporter": "^2.4.4"
   },
   "devDependencies": {
-    "jest-html-reporter": "^2.4.4"
   }
 }
