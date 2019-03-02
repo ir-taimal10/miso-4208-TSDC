@@ -5,7 +5,7 @@ deploy:
   provider: heroku
   api_key:
     secure: Mc2V9IxNUwqIG8tv7p78neh56Pl7wBl0/5b7SkJBBvO4Bj6eXll6WYWz7wrJHW+ig4xnL++pq1RfygUnDyaxVMsPmYQg8PhYzTfCiDdip1CN+lZNO/LatsTBxIr5YhXk4K1FcxXqeBL5G546cuOsg9xwYQsZe8t3nU5da6009u58CXGj577TAY+ICBNcdOiQkF5/MhplAIerYzB2eu5qbe6ogB8BDXedroAVDnrnlQPSVUwr5eolYAkF9vP1ijenKIwob0km8yE5EC0o9pGrrfpzIvewnPGgPxD3INkvzWgY++WaxyOjOGhQwCGvbYExqq+4etDakymZUzPQgK8Y+1ba2BOn+RguinZJwJw3qYsht0dre0twqVUP3LoCiLHR7Ciojw5C5US9MHH2lr3LJ77+nTJ+JYWcUv/UqdO7w0rwSZi/w0VQDe+a9Cd4cWtAleOHf3jBfJW2cUhZJPOUqR/PaP5FxInsUlXu4n+mwdI6dhJqhlL+6hirw1OdFd3pHuAvDxcMY4lYdGHraQYnosPR+wfU00vTp3JUDCvnxs0Dq3TcM9G0IEQ+oKq8b2jPEkerpZ6FhwtXcV+jF+/tdLSKyRoOr1P17dQA7YPaEw8HPSxFfw/pzmj0BeLoElvdp6m4g9ziEaWPQuZ9XZyrDhRvLjs3zfuy4xq30drGcsE=
-  app: miso-4208-TSDC
+  app: tsdc-test-runner
   on:
     repo: ir-taimal10/miso-4208-TSDC
 env:
