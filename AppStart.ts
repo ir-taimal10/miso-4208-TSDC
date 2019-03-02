@@ -12,7 +12,7 @@ import {Scheduler} from "./TestingTool.Runner/utils/Scheduler";
         "/api": "${rootDir}/**/Controllers/**\/*Controller.ts"
     },
     statics: {
-        "/": "${rootDir}/reports"
+        "/": Path.join(__dirname, "reports")
     }
 })
 export class Server extends ServerLoader {
