@@ -1,4 +1,4 @@
-describe('Dashboard', function() {
+describe('Random test in Dashboard', function() {
     it('Process success creation basic the survey (name)', function() {
     	cy.visit('https://demo.limesurvey.org/index.php?r=admin/authentication/sa/login', { timeout: 30000 })
 		cy.get('.login-submit').contains('login').click()
