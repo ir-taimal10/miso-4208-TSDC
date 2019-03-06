@@ -1,0 +1,16 @@
+Feature: Search for tourism
+ AS an user I WANT TO search an specific types of sites.
+
+  Scenario Outline: I want to touch over each type tab
+    Given I press "Turismo"
+    Then I wait for 3 seconds
+    Then I touch the <Type> text
+    Then I wait for 3 seconds
+    Then I wait to see <TypeDetail>
+
+    Examples:
+      | Type               | TypeDetail |
+      | "TODOS"            | "PORTAL" |
+      | "BIBLIOTECAS"      | "TINTAL" |
+      | "MONUMENTOS"       | "HEROES" |
+      | "MUSEOS"           | "ORO" |
