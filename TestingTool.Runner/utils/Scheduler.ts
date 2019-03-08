@@ -1,5 +1,5 @@
 import * as Cron from "node-cron";
-import {UtilsService} from "./UtilsService";
+import {TestRunner} from "./TestRunner";
 
 export class Scheduler {
     constructor() {
@@ -7,16 +7,9 @@ export class Scheduler {
 
     start(period: string) {
         console.log("Scheduler is running");
+        const testRunner = new TestRunner();
         Cron.schedule(period, async () => {
-            const util = new UtilsService();
-            const platform = process.platform;
-            let command = `npm run test:e2e`;
-            if (platform == 'win32') {
-                command = `npm.cmd run test:e2e`;
-            }
-            await util.executeCommand(command)
-                .then(response => console.log("output", response));
-            console.log("Test finished", platform);
+            await testRunner.getTaskFromQueue();
         });
     }
 
