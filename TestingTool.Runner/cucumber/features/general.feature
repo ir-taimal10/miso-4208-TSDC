@@ -1,18 +1,5 @@
 Feature: Login into limesurvey
 
-Scenario Outline: Login limesurvey with wrong inputs
-
-  Given I go to main page home screen
-    When I fill with wrong <username> and <password>
-    And I try to login
-    Then I expect to see <error>
-
-    Examples:
-      | username         | password            | error                                  |
-      | miso             |    1234             | Incorrect username and/or password!    |
-      | miso             |    select * from 1  | Incorrect username and/or password!    |
-
-
 Scenario Outline: Login limesurvey with success inputs
 
   Given I go to main page home screen
@@ -22,7 +9,7 @@ Scenario Outline: Login limesurvey with success inputs
 
     Examples:
       | username         | password            |
-      | demo             |    demo             |
+      | admin            | password            |
 
 
 Scenario Outline: Create success Survey in limesurvey with success inputs
@@ -37,6 +24,18 @@ Scenario Outline: Create success Survey in limesurvey with success inputs
 
     Examples:
       | username         | password            | namesurvey                         |
-      | demo             |    demo             |    demo                            |
-      | demo             |    demo             |    dedasdsadasdasdsamo             |
-      | demo             |    demo             |                                    |      
+      | admin            | password            |    demo                            |
+      | admin            | password            |    dedasdsadasdasdsamo             |  
+      
+      
+Scenario Outline: Login limesurvey with wrong inputs
+
+  Given I go to main page home screen
+    When I fill with wrong <username> and <password>
+    And I try to login
+    Then I expect to see <error>
+
+    Examples:
+      | username         | password            | error                                  |
+      | miso             |    1234             | Incorrect username and/or password!    |
+      | miso             |    select * from 1  | Incorrect username and/or password!    |
