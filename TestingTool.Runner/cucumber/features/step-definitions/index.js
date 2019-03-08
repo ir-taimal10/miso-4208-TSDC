@@ -3,7 +3,7 @@ var {expect} = require('chai');
 
 defineSupportCode(({Given, When, Then}) => {
   Given('I go to main page home screen', () => {
-    browser.url('/index.php?r=admin/authentication/sa/login');
+    browser.url('/admin/authentication/sa/login');
   });
 
   When(/^I fill with wrong (.*) and (.*)$/ , (username, password) => {
