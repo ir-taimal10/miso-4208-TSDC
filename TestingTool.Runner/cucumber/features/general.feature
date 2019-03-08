@@ -20,12 +20,13 @@ Scenario Outline: Create success Survey in limesurvey with success inputs
     And I click in funtion create survey
     And I fill survey with success <namesurvey>
     And I try to create survey
-    Then I expect to see success creation survey <error>
+    Then I expect to see success creation survey
 
     Examples:
-      | username         | password            | namesurvey                         |
-      | admin            | password            |    demo                            |
-      | admin            | password            |    dedasdsadasdasdsamo             |  
+      | username         | password            | namesurvey                                                                             | 
+      | admin            | password            |    demo                                                                                |
+      | admin            | password            |    demoMUYLARGAELNOMBREDESDSADASDASDASDASDASDASDSADASDASDAS                            |
+      | admin            | password            |    DELETE FROM *                                                                       | 
       
       
 Scenario Outline: Login limesurvey with wrong inputs
