@@ -54,24 +54,89 @@ export class TestRunner {
         });
     }
 
-    async processTask(testTypes: string) {
-        console.log("Test to execute: ", testTypes);
-        const testsToRun = testTypes.split(',');
-        testsToRun.forEach(async (test, index) => {
-            await this.runTest(test);
-        });
+    async processTask(strategy: string) {
+        console.log("Test to execute: ", strategy);
+        //const testsToRun = testTypes.split(',');
+        const testStrategy = JSON.parse(strategy);
+        if (testStrategy.appType == "mobile") {
+            testStrategy.tests.forEach(async (testName, index) => {
+                await this.runMobileTest(testName, testStrategy.domain, testStrategy.apkName);
+            });
+        }
+        else if (testStrategy.appType == "web") {
+            testStrategy.tests.forEach(async (testName, index) => {
+                await this.runWebTest(testName, testStrategy.domain);
+            });
+        } else {
+            console.log("App type not supported ");
+        }
     }
 
-    async runTest(test) {
-        console.log("test", test);
+    async runWebTest(testName, domain) {
+        console.log("Running test: ", testName);
         const util = new UtilsService();
         const platform = process.platform;
-        let command = `npm run test:e2e`;
+        let command = `npm run test: ${testName}`;
         if (platform == 'win32') {
-            command = `npm.cmd run test:e2e`;
+            command = `npm.cmd run test: ${testName}`;
         }
         await util.executeCommand(command)
             .then(response => console.log("output", response));
-        console.log("Test finished", platform);
+        console.log(`Test ${testName}, ${domain} finished`, platform);
+    }
+
+    async runMobileTest(testName, domain, apkName) {
+        console.log("Running test: ", testName);
+        const platform = process.platform;
+        if (testName == "adb_monkey") {
+            let command = `./adb`;
+            if (platform == 'win32') {
+                command = `adb`;
+            }
+            new UtilsService().executeCommand('emulator @Pixel_2_API_28')
+                .then(response => {
+                    new UtilsService().executeCommand(`${command} shell monkey -p ${domain} -v 10000`)
+                        .then(response => {
+                            console.log("output", response);
+                            new UtilsService().executeCommand(`${command} -e emu kill`).then(response => {
+                                console.log("Test Mobile finished", platform)
+                            });
+                        });
+                });
+        }
+
+        else if (testName == "calabash") {
+            let command = `calabash-android run ${apkName}`;
+            if (platform == 'win32') {
+                command = `calabash-android run ${apkName}`;
+            }
+            new UtilsService().executeCommand(command)
+                .then(response => console.log("output", response));
+            console.log("Test Mobile finished", platform);
+        }
+        else {
+            console.log("Test mobile not supported");
+        }
     }
 }
+
+
+let mobileStrategy = {
+    "appType": "mobile",
+    "domain": "org.isoron.uhabits",
+    "apkName": "unhabit.apk",
+    "tests": [
+        "adb_monkey"
+    ]
+};
+
+
+let webStrategy = {
+    "appType": "web",
+    "domain": "http://34.220.148.114:8082/index.php",
+    "tests": [
+        "cucumber",
+        "cypress",
+        "puppeteer"
+    ]
+};

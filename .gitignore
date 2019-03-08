@@ -285,3 +285,6 @@ Thumbs.db
 **/build/**/**
 **/reports/**/**
 *screenshot.png
+**/errorShots/**
+
+**/cypress/screenshots/**
