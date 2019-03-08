@@ -72,7 +72,7 @@ exports.config = {
     //
     // Set a base URL in order to shorten url command calls. If your url parameter starts
     // with "/", then the base url gets prepended.
-    baseUrl: 'https://demo.limesurvey.org/index.php?r=admin/authentication/sa/login',
+    baseUrl: 'http://34.220.148.114:8082/index.php',
     //
     // Default timeout for all waitFor* commands.
     waitforTimeout: 10000,
