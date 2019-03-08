@@ -6,16 +6,29 @@ export class Scheduler {
     }
 
     start(period: string) {
-
-        console.log("┌───────────────┬───────────────┬──────────────────────┐");
-        console.log("│   Running as Worker mode                             │");
-        console.log("│   Reading Test Strategy from Queue                   │");
-        console.log("└───────────────┴───────────────┴──────────────────────┘");
-
-        const testRunner = new TestRunner();
-        Cron.schedule(period, async () => {
-            await testRunner.getTaskFromQueue();
-        });
+        if (
+            process.env.TSDC_SERVICES_QUEUE_URL
+            && process.env.TSDC_SERVICES_ACCESS_KEY_ID
+            && process.env.TSDC_SERVICES_SECRET_KEY) {
+            const testRunner = new TestRunner();
+            console.log("┌───────────────┬───────────────┬──────────────────────┐");
+            console.log("│   Running as Worker mode                             │");
+            console.log("│   Reading Test Strategy from Queue                   │");
+            console.log("└───────────────┴───────────────┴──────────────────────┘");
+            Cron.schedule(period, async () => {
+                await testRunner.getTaskFromQueue();
+            });
+        } else {
+            console.log("┌───────────────┬───────────────┬──────────────────────┐");
+            console.log("│   Worker is not running !!!                          │");
+            console.log("│   Before to start the worker the next environment    │");
+            console.log("│   vars must be configured:                           │");
+            console.log("│                                                      │");
+            console.log("│   TSDC_SERVICES_QUEUE_URL                            │");
+            console.log("│   TSDC_SERVICES_ACCESS_KEY_ID                        │");
+            console.log("│   TSDC_SERVICES_SECRET_KEY                           │");
+            console.log("└───────────────┴───────────────┴──────────────────────┘");
+        }
     }
 
 }
