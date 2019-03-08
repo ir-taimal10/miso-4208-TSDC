@@ -37,6 +37,8 @@ defineSupportCode(({Given, When, Then}) => {
 
   When(/^I fill with success (.*) and (.*)$/ , (username, password) => {
     
+    browser.waitForVisible('.login-panel', 20000);
+
     var loginPanel = browser.element('.login-panel');
 
     var userInput = loginPanel.element('input[name="user"]');
@@ -47,18 +49,13 @@ defineSupportCode(({Given, When, Then}) => {
     passwordInput.click();
     passwordInput.keys(password)
 
-  });
-
-  Then('I expect to see success',() => {
-
-  });
-  
+  });  
 
   When('I click in funtion create survey', () => {
     browser.element('.selector__create_survey').click();
   });
 
-  When(/^I fill survey with success (.*) and (.*)$/ , (namesurvey) => {
+  When(/^I fill survey with success (.*)$/ , (namesurvey) => {
     
     var formPanel = browser.element('.form-group');
 
@@ -69,11 +66,12 @@ defineSupportCode(({Given, When, Then}) => {
   });
 
   When('I try to create survey', () => {
-    browser.element('#save-form-button').click();;
+    browser.element('#save-form-button').click();
+    browser.waitForVisible('.alert-info', 15000);
   });
 
   Then('I expect to see success creation survey',() => {
-
+     browser.waitForVisible('.alert-dismissible', 15000);
   });
 
 });
