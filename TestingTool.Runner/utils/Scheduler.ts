@@ -6,7 +6,12 @@ export class Scheduler {
     }
 
     start(period: string) {
-        console.log("Scheduler is running");
+
+        console.log("┌───────────────┬───────────────┬──────────────────────┐");
+        console.log("│   Running as Worker mode                             │");
+        console.log("│   Reading Test Strategy from Queue                   │");
+        console.log("└───────────────┴───────────────┴──────────────────────┘");
+
         const testRunner = new TestRunner();
         Cron.schedule(period, async () => {
             await testRunner.getTaskFromQueue();

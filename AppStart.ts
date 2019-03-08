@@ -40,9 +40,11 @@ export class Server extends ServerLoader {
     public $onReady() {
         console.log('Server started...');
         console.log('Statics ${rootDir}/reports');
-
-        const scheduler = new Scheduler();
-        scheduler.start("* * * * *");
+        const args = process.argv;
+        if (args.indexOf('--worker') > 0) {
+            const scheduler = new Scheduler();
+            scheduler.start("* * * * *");
+        }
     }
 
     public $onServerInitError(err) {

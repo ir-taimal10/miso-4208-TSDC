@@ -1,5 +1,5 @@
 const path = require("path");
-const outputFiles = path.join(__dirname, "reports", "puppeteer", "test-report_2.html");
+const outputFiles = path.join(__dirname, "reports", "puppeteer", "test-report.html");
 module.exports = {
     verbose: true,
     preset: "jest-puppeteer",
