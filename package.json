@@ -13,7 +13,6 @@
     "server:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
     "server": "tsc && node ./build/AppStart.js",
     "worker": "tsc && node ./build/AppStart.js --worker"
-
   },
   "repository": {
     "type": "git",
