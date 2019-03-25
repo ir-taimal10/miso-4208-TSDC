@@ -13,7 +13,7 @@
     "server:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
     "server": "tsc && node ./build/AppStart.js",
     "worker": "tsc && node ./build/AppStart.js --worker",
-    "test:comparer": "tsc && node ./build/TestingTool.Services/compareScreenshotApp/ComparerScreenshot.js"
+    "test:comparer": "tsc && node ./build/TestingTool.Services/compareScreenshotApp/ComparerScreenshot.js IMG_TO=$IMG_TO IMG_FORM=$IMG_FORM"
   },
   "repository": {
     "type": "git",
