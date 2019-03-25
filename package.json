@@ -12,7 +12,8 @@
     "test:cypress": "cypress run --record --key cc6808e9-c5b6-4639-a0b7-5df6262b50d6 --headed",
     "server:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
     "server": "tsc && node ./build/AppStart.js",
-    "worker": "tsc && node ./build/AppStart.js --worker"
+    "worker": "tsc && node ./build/AppStart.js --worker",
+    "test:comparer": "tsc && node ./build/TestingTool.Services/compareScreenshotApp/ComparerScreenshot.js"
   },
   "repository": {
     "type": "git",
