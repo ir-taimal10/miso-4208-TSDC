@@ -1,4 +1,4 @@
-const {Given, When, Then, After} = require('cucumber');
+const {Given, When, Then, AfterAll} = require('cucumber');
 const {expect} = require('chai');
 const puppeteer = require('puppeteer');
 const select = require('puppeteer-select');
@@ -8,14 +8,6 @@ const faker = require('faker');
 global.testContext = global.testContext || {};
 const timeOut = {timeout: 20 * 1000};
 
-
-
-
-
-After(async ()=> {
-    console.log("after -------------");
-    this.attach('{"name": "some JSON"}', 'application/json');
-});
 
 Given('I go to main page home screen {string}', timeOut, async (url) => {
     const width = 1280;
