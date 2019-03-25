@@ -1,42 +1,65 @@
 Feature: Login into limesurvey
 
-Scenario Outline: Login limesurvey with success inputs
+# Scenario Outline: Login limesurvey with success inputs
+#
+#   Given I go to main page home screen 'http://34.216.245.75:8082/index.php/admin/authentication/sa/login'
+#   When I write credentials <username> and <password>
+#   And I click in submit login
+#   Then I should view <result> as content
+#   Then I close the browser
+#   Examples:
+#     | username | password    | result                                                                                      |
+#     | admin    | password    | 'Esta es la interfaz de administración de LimeSurvey. Comience a elaborar su encuesta aquí' |
+#     | admin    | passwordasa | 'Error'                                                                                     |
 
-  Given I go to main page home screen
-    When I fill with success <username> and <password>
-    And I try to login
-    Then I expect to see success
+Scenario: Create success Survey in limesurvey with success inputs
 
-    Examples:
-      | username         | password            |
-      | admin            | password            |
+  Given I go to main page home screen 'http://34.216.245.75:8082/index.php/admin/authentication/sa/login'
+  When I write credentials admin and password
+  And I click in submit login
+
+  Then I should view 'Esta es la interfaz de administración de LimeSurvey. Comience a elaborar su encuesta aquí' as content
+  When I click in panel with text 'Crear una nueva encuesta'
+  Then I should view 'Crear, importar o copiar encuesta' as content
+  When I fill input 'surveyls_title' with randomName
+  When I click in link 'Guardar'
+  Then I expect to see success creation survey
+
+  When I go home
+  Then I should view 'Esta es la interfaz de administración de LimeSurvey. Comience a elaborar su encuesta aquí' as content
+  When I click in panel with text 'Crear una nueva encuesta'
+  Then I should view 'Crear, importar o copiar encuesta' as content
+  When I fill input 'surveyls_title' with randomName
+  When I click in link 'Guardar'
+  Then I expect to see success creation survey
+
+  When I go home
+  Then I should view 'Esta es la interfaz de administración de LimeSurvey. Comience a elaborar su encuesta aquí' as content
+  When I click in panel with text 'Crear una nueva encuesta'
+  Then I should view 'Crear, importar o copiar encuesta' as content
+  When I fill input 'surveyls_title' with randomName
+  When I click in link 'Guardar'
+  Then I expect to see success creation survey
+
+  When I go home
+  Then I should view 'Esta es la interfaz de administración de LimeSurvey. Comience a elaborar su encuesta aquí' as content
+  When I click in panel with text 'Crear una nueva encuesta'
+  Then I should view 'Crear, importar o copiar encuesta' as content
+  When I fill input 'surveyls_title' with randomName
+  When I click in link 'Guardar'
+  Then I expect to see success creation survey
+
+  When I go home
+  Then I should view 'Esta es la interfaz de administración de LimeSurvey. Comience a elaborar su encuesta aquí' as content
+  When I click in panel with text 'Crear una nueva encuesta'
+  Then I should view 'Crear, importar o copiar encuesta' as content
+  When I fill input 'surveyls_title' with randomName
+  When I click in link 'Guardar'
+  Then I expect to see success creation survey
+
+  Then I close the browser
 
 
-Scenario Outline: Create success Survey in limesurvey with success inputs
 
-  Given I go to main page home screen
-    When I fill with success <username> and <password>
-    And I try to login
-    And I click in funtion create survey
-    And I fill survey with success <namesurvey>
-    And I try to create survey
-    Then I expect to see success creation survey
 
-    Examples:
-      | username         | password            | namesurvey                                                                             | 
-      | admin            | password            |    demo                                                                                |
-      | admin            | password            |    demoMUYLARGAELNOMBREDESDSADASDASDASDASDASDASDSADASDASDAS                            |
-      | admin            | password            |    DELETE FROM *                                                                       | 
-      
-      
-Scenario Outline: Login limesurvey with wrong inputs
 
-  Given I go to main page home screen
-    When I fill with wrong <username> and <password>
-    And I try to login
-    Then I expect to see <error>
-
-    Examples:
-      | username         | password            | error                                  |
-      | miso             |    1234             | Incorrect username and/or password!    |
-      | miso             |    select * from 1  | Incorrect username and/or password!    |
