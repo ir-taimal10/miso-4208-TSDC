@@ -5,7 +5,7 @@ export class Scheduler {
     constructor() {
     }
 
-    start(period: string) {
+    async start(period: string) {
         if (
             process.env.TSDC_SERVICES_QUEUE_URL
             && process.env.TSDC_SERVICES_ACCESS_KEY_ID
@@ -16,7 +16,12 @@ export class Scheduler {
             console.log("│   Reading Test Strategy from Queue                   │");
             console.log("└───────────────┴───────────────┴──────────────────────┘");
             Cron.schedule(period, async () => {
+                console.log("┌───────────────┬───────────────┬──────────────────────┐");
+                console.log("│   reload Scripts                                    │");
+                await testRunner.downloadFile('login.test.ts');
+                console.log("│   get Task From Queue                               │");
                 await testRunner.getTaskFromQueue();
+                console.log("└───────────────┴───────────────┴──────────────────────┘");
             });
         } else {
             console.log("┌───────────────┬───────────────┬──────────────────────┐");

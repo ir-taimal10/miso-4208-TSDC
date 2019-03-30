@@ -1,8 +1,13 @@
 import * as AWS from 'aws-sdk';
 import {UtilsService} from "./UtilsService";
+import * as Q from "q";
+import * as PB from "progress";
+import * as fs from "fs";
+import * as Path from "path";
 
 export class TestRunner {
     private sqs: any;
+    private s3: any;
     private params: any = {
         AttributeNames: [
             "SentTimestamp"
@@ -23,6 +28,7 @@ export class TestRunner {
             region: 'us-west-2'
         });
         this.sqs = new AWS.SQS({apiVersion: '2012-11-05'});
+        this.s3 = new AWS.S3({apiVersion: '2006-03-01'});
     }
 
     async getTaskFromQueue() {
@@ -118,25 +124,67 @@ export class TestRunner {
             console.log("Test mobile not supported");
         }
     }
+
+    public async downloadFile(filename) {
+        const outputDir = Path.join(__dirname, '..', '..', '..');
+        const deferred = Q.defer(),
+            output = Path.join(outputDir, filename),
+            stream = fs.createWriteStream(output),
+            params = {
+                Bucket: 'tsdcgrupo5',
+                Key: filename
+            };
+       /* if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir);
+        }*/
+        let bar;
+        console.log('get file from s3', Path.join(__dirname, filename));
+        this.s3.getObject(params)
+            .on('httpHeaders', function (statusCode, headers, resp) {
+                // console.log('get file from s3 headers');
+                const len = parseInt(headers['content-length'], 10);
+                bar = new PB('  ' + filename + ': [:bar] :percent :etas', {
+                    complete: '=',
+                    incomplete: ' ',
+                    width: 20,
+                    total: len
+                });
+            })
+            .on('httpData', function (chunk) {
+                // console.log('get file from s3 data');
+                stream.write(chunk);
+                bar.tick(chunk.length);
+            })
+            .on('httpDone', function (response) {
+                // console.log('get file from s3 done');
+                if (response.error) {
+                    deferred.reject(response.error);
+                } else {
+                    deferred.resolve(output);
+                }
+                stream.end();
+            })
+            .send();
+        return deferred.promise;
+    }
+
+    public async downloadSimple(filename) {
+        const file = fs.createWriteStream(Path.join(__dirname, '..', '..', '..', filename));
+        this.s3
+            .getObject({
+                Bucket: 'tsdcgrupo5',
+                Key: filename
+            })
+            .on('error', function (err) {
+                console.log(err);
+            })
+            .on('httpData', function (chunk) {
+                file.write(chunk);
+            })
+            .on('httpDone', function () {
+                file.end();
+            })
+            .send();
+    }
+
 }
-
-
-let mobileStrategy = {
-    "appType": "mobile",
-    "domain": "org.isoron.uhabits",
-    "apkName": "unhabit.apk",
-    "tests": [
-        "adb_monkey"
-    ]
-};
-
-
-let webStrategy = {
-    "appType": "web",
-    "domain": "http://34.220.148.114:8082/index.php",
-    "tests": [
-        "cucumber",
-        "cypress",
-        "puppeteer"
-    ]
-};
