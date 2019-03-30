@@ -15,13 +15,9 @@ export class Scheduler {
             console.log("│   Running as Worker mode                             │");
             console.log("│   Reading Test Strategy from Queue                   │");
             console.log("└───────────────┴───────────────┴──────────────────────┘");
+            await testRunner.runStrategy();
             Cron.schedule(period, async () => {
-                console.log("┌───────────────┬───────────────┬──────────────────────┐");
-                console.log("│   reload Scripts                                    │");
-                await testRunner.downloadFile('login.test.ts');
-                console.log("│   get Task From Queue                               │");
-                await testRunner.getTaskFromQueue();
-                console.log("└───────────────┴───────────────┴──────────────────────┘");
+                await testRunner.runStrategy();
             });
         } else {
             console.log("┌───────────────┬───────────────┬──────────────────────┐");

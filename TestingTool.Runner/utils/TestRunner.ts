@@ -2,7 +2,7 @@ import * as AWS from 'aws-sdk';
 import {UtilsService} from "./UtilsService";
 import * as Q from "q";
 import * as PB from "progress";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as Path from "path";
 
 export class TestRunner {
@@ -29,6 +29,15 @@ export class TestRunner {
         });
         this.sqs = new AWS.SQS({apiVersion: '2012-11-05'});
         this.s3 = new AWS.S3({apiVersion: '2006-03-01'});
+    }
+
+    async runStrategy() {
+        console.log("┌───────────────┬───────────────┬──────────────────────┐");
+        console.log("│   Reloading Scripts  ...                                │");
+        await this.downloadScripts();
+        console.log("│   Loading Task From Queue  ...                          │");
+        await this.getTaskFromQueue();
+        console.log("└───────────────┴───────────────┴──────────────────────┘");
     }
 
     async getTaskFromQueue() {
@@ -126,65 +135,68 @@ export class TestRunner {
     }
 
     public async downloadFile(filename) {
+        const self = this;
         const outputDir = Path.join(__dirname, '..', '..', '..');
-        const deferred = Q.defer(),
-            output = Path.join(outputDir, filename),
-            stream = fs.createWriteStream(output),
-            params = {
-                Bucket: 'tsdcgrupo5',
-                Key: filename
-            };
-       /* if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir);
-        }*/
+        const deferred = Q.defer();
+        const output = Path.join(outputDir, filename);
+        const params = {
+            Bucket: 'tsdcgrupo5',
+            Key: filename
+        };
         let bar;
-        console.log('get file from s3', Path.join(__dirname, filename));
-        this.s3.getObject(params)
-            .on('httpHeaders', function (statusCode, headers, resp) {
-                // console.log('get file from s3 headers');
-                const len = parseInt(headers['content-length'], 10);
-                bar = new PB('  ' + filename + ': [:bar] :percent :etas', {
-                    complete: '=',
-                    incomplete: ' ',
-                    width: 20,
-                    total: len
-                });
-            })
-            .on('httpData', function (chunk) {
-                // console.log('get file from s3 data');
-                stream.write(chunk);
-                bar.tick(chunk.length);
-            })
-            .on('httpDone', function (response) {
-                // console.log('get file from s3 done');
-                if (response.error) {
-                    deferred.reject(response.error);
-                } else {
-                    deferred.resolve(output);
-                }
-                stream.end();
-            })
-            .send();
+        if (!fs.existsSync(Path.dirname(output))) {
+            fs.ensureDir(Path.dirname(output))
+                .then(() => {
+                    const stream = fs.createWriteStream(output);
+                    self.s3.getObject(params)
+                        .on('httpHeaders', function (statusCode, headers, resp) {
+                            // console.log('get file from s3 headers');
+                            const len = parseInt(headers['content-length'], 10);
+                            bar = new PB('  ' + filename + ': [:bar] :percent :etas', {
+                                complete: '=',
+                                incomplete: ' ',
+                                width: 20,
+                                total: len
+                            });
+                        })
+                        .on('httpData', function (chunk) {
+                            // console.log('get file from s3 data');
+                            stream.write(chunk);
+                            bar.tick(chunk.length);
+                        })
+                        .on('httpDone', function (response) {
+                            // console.log('get file from s3 done');
+                            if (response.error) {
+                                deferred.reject(response.error);
+                            } else {
+                                deferred.resolve(output);
+                            }
+                            stream.end();
+                        })
+                        .send();
+                })
+                .catch(err => {
+                    console.error(err)
+                })
+        }
         return deferred.promise;
     }
 
-    public async downloadSimple(filename) {
-        const file = fs.createWriteStream(Path.join(__dirname, '..', '..', '..', filename));
-        this.s3
-            .getObject({
-                Bucket: 'tsdcgrupo5',
-                Key: filename
-            })
-            .on('error', function (err) {
+    public async downloadScripts() {
+        this.s3.listObjects({
+            Bucket: 'tsdcgrupo5'
+        }, (err, data) => {
+            if (err) {
                 console.log(err);
-            })
-            .on('httpData', function (chunk) {
-                file.write(chunk);
-            })
-            .on('httpDone', function () {
-                file.end();
-            })
-            .send();
+            }
+            if (data && data.Contents && data.Contents.length > 0) {
+                data.Contents.forEach(async (elementData, index) => {
+                    if (elementData.Size != 0) {
+                        await this.downloadFile(elementData.Key)
+                    }
+                });
+            }
+        });
     }
 
 }

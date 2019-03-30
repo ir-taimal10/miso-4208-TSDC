@@ -288,3 +288,7 @@ Thumbs.db
 **/errorShots/**
 
 **/cypress/screenshots/**
+
+**/ScriptTest/**
+**/ScriptTest/**/**
+ScriptTest/**/
