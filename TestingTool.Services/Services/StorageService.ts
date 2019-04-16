@@ -13,8 +13,17 @@ export class StorageService {
         this._s3 = new AWS.S3({apiVersion: '2006-03-01'});
     }
 
-    public async createFolder(){
-
+    public async createFolder() {
+        const file = fs.existsSync('C:\\Users\\O-I-O\\Downloads\\MMA21C__180856974.pdf');
+        await  this._s3.upload({
+            Key: 'test/test.js',
+            Bucket: 'tsdcgrupo5',
+            Body: fs.readFileSync(file),
+        }, (err) => {
+            if (err) {
+                console.log('error');
+            }
+        });
     }
 
 

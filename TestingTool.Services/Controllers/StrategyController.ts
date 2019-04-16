@@ -1,13 +1,16 @@
 import {Controller, Get, Post, Put} from "@tsed/common";
 import * as Express from "express";
 import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/StrategyPersistence";
+import {StorageService} from "../Services/StorageService";
 
 @Controller("/strategy")
 export class StrategyController {
     private _strategyPersistence;
+    private _storageService;
 
     constructor() {
         this._strategyPersistence = new StrategyPersistence();
+        this._storageService = new StorageService();
     }
 
     @Get("")
@@ -24,6 +27,7 @@ export class StrategyController {
 
     @Post("")
     async createStrategy(request: Express.Request, response: Express.Response): Promise<any> {
+        await this._storageService.createFolder();
         const result = await  this._strategyPersistence.createStrategy(request.body);
         return result || {};
     }
