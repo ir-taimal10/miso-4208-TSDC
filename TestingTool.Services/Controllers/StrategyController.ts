@@ -1,4 +1,4 @@
-import {Controller, Get} from "@tsed/common";
+import {Controller, Get, Post} from "@tsed/common";
 import * as Express from "express";
 import {StrategyPersistence} from "../../TestingTool.Persistence/StrategyPersistence";
 
@@ -13,12 +13,19 @@ export class StrategyController {
     @Get("")
     async getStrategies(request: Express.Request, response: Express.Response): Promise<any> {
         const result = await  this._strategyPersistence.getStrategies();
-        return {strategies: result};
+        return result || [];
     }
 
     @Get("/:id")
     async getStrategy(request: Express.Request, response: Express.Response): Promise<any> {
         const result = await  this._strategyPersistence.getStrategy(request.params.id);
-        return {result: result};
+        return result[0] || {};
     }
+
+    @Post("")
+    async createStrategy(request: Express.Request, response: Express.Response): Promise<any> {
+        const result = await  this._strategyPersistence.createStrategy(request.body);
+        return result || {};
+    }
+
 }
