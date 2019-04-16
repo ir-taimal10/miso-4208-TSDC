@@ -1,6 +1,6 @@
 import {Controller, Get, Post} from "@tsed/common";
 import * as Express from "express";
-import {AUTPersistence} from "../../TestingTool.Persistence/AUTPersistence";
+import {AUTPersistence} from "../../TestingTool.Persistence/Persistence/AUTPersistence";
 
 @Controller("/aut")
 export class AUTController {

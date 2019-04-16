@@ -1,6 +1,6 @@
 import * as mysql from 'promise-mysql';
-import {config} from "./PersistenceConfig";
-import {IStrategy} from "./Models/Strategy";
+import {config} from "../Config/PersistenceConfig";
+import {IStrategy} from "../Models/Strategy";
 import {Guid} from "guid-typescript";
 
 export class StrategyPersistence {

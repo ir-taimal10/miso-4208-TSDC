@@ -1,6 +1,6 @@
-import {Controller, Get, Post} from "@tsed/common";
+import {Controller, Get, Post, Put} from "@tsed/common";
 import * as Express from "express";
-import {StrategyPersistence} from "../../TestingTool.Persistence/StrategyPersistence";
+import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/StrategyPersistence";
 
 @Controller("/strategy")
 export class StrategyController {
@@ -26,6 +26,12 @@ export class StrategyController {
     async createStrategy(request: Express.Request, response: Express.Response): Promise<any> {
         const result = await  this._strategyPersistence.createStrategy(request.body);
         return result || {};
+    }
+
+    @Put("/:idStrategy/scripts")
+    async uploadStrategyScripts(request: Express.Request, response: Express.Response): Promise<any> {
+        const result = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
+        return result[0] || {};
     }
 
 }

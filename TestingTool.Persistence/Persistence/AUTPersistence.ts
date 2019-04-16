@@ -1,7 +1,7 @@
 import * as mysql from 'promise-mysql';
-import {config} from "./PersistenceConfig";
+import {config} from "../Config/PersistenceConfig";
 import {Guid} from "guid-typescript";
-import {IAUT} from "./Models/AUT";
+import {IAUT} from "../Models/AUT";
 
 export class AUTPersistence {
     private _pool;
