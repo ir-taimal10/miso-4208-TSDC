@@ -1,7 +1,6 @@
 import * as mysql from 'promise-mysql';
 import {config} from "./PersistenceConfig";
 import {IStrategy} from "./Models/Strategy";
-import {GUID} from "aws-sdk/clients/es";
 import {Guid} from "guid-typescript";
 
 export class StrategyPersistence {
