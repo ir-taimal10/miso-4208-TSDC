@@ -16,9 +16,9 @@ export class StrategyController {
         return result || [];
     }
 
-    @Get("/:id")
+    @Get("/:idStrategy")
     async getStrategy(request: Express.Request, response: Express.Response): Promise<any> {
-        const result = await  this._strategyPersistence.getStrategy(request.params.id);
+        const result = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
         return result[0] || {};
     }
 
