@@ -58,5 +58,7 @@
     "webdriverio": "^4.8.0",
     "xml2js": "^0.4.19"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "promise-mysql": "^3.3.1"
+  }
 }
