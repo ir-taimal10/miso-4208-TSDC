@@ -2,6 +2,8 @@ import {Controller, Get, Post, Put} from "@tsed/common";
 import * as Express from "express";
 import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/StrategyPersistence";
 import {StorageService} from "../Services/StorageService";
+import {MulterOptions, MultipartFile} from "@tsed/multipartfiles";
+import {MulterFile} from "../../TestingTool.Persistence/Models/MulterFile";
 
 @Controller("/strategy")
 export class StrategyController {
@@ -36,6 +38,20 @@ export class StrategyController {
     async uploadStrategyScripts(request: Express.Request, response: Express.Response): Promise<any> {
         const result = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
         return result[0] || {};
+    }
+
+
+    @Post('/file')
+    @MulterOptions({dest: "/other-dir"})
+    async uploadFile(@MultipartFile('file') file: MulterFile): Promise<any> {
+        return {};
+    }
+
+
+    @Post('/files')
+    async uploadFiles(@MultipartFile("files", 4) files: MulterFile[]): Promise<any> {
+        console.log("files: ", files);
+        return {};
     }
 
 }

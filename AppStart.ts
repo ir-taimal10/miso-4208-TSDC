@@ -1,10 +1,12 @@
-import {ServerLoader, ServerSettings} from "@tsed/common";
+import {GlobalAcceptMimesMiddleware, ServerLoader, ServerSettings} from "@tsed/common";
 import Path = require("path");
+import "@tsed/multipartfiles";
 import {Scheduler} from "./TestingTool.Runner/utils/Scheduler";
+import "./TestingTool.Services/Middlewares/MultipartFilesOverrided";
 
 @ServerSettings({
     rootDir: Path.resolve(__dirname),
-    acceptMimes: ["application/json"],
+    acceptMimes: ["application/json", "multipart/form-data"],
     port: process.env.PORT || 8080,
     uploadDir: "${rootDir}/uploads",
     mount: {
@@ -25,7 +27,7 @@ export class Server extends ServerLoader {
             compress = require('compression'),
             methodOverride = require('method-override');
         this
-        //.use(GlobalAcceptMimesMiddleware)
+            .use(GlobalAcceptMimesMiddleware)
             .use(cookieParser())
             .use(compress({}))
             .use(methodOverride())
