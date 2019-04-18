@@ -6,6 +6,7 @@ import "./TestingTool.Services/Middlewares/MultipartFilesOverrided";
 import * as multerS3 from 'multer-s3';
 import * as AWS from "aws-sdk";
 import {awsConfig} from "./TestingTool.Services/Config/AWSConfig";
+
 AWS.config.update(awsConfig);
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
@@ -25,7 +26,14 @@ const s3 = new AWS.S3({apiVersion: '2006-03-01'});
             s3: s3,
             bucket: 'tsdcgrupo5',
             metadata: function (req, file, cb) {
-                cb(null, {fieldName: file.fieldname});
+                cb(null,
+                    {
+                        name: file.originalname,
+                        fieldName: file.fieldname,
+                        idStrategy: req.params.idStrategy,
+                        testType: req.params.testType
+                    }
+                );
             },
             key: function (req, file, cb) {
                 cb(null, `scriptTests/${req.params.idStrategy}/${req.params.testType}/${file.originalname}`)
