@@ -64,6 +64,7 @@
   "devDependencies": {
     "@tsed/core": "^5.6.1",
     "guid-typescript": "^1.0.9",
+    "multer-s3": "^2.9.0",
     "promise-mysql": "^3.3.1"
   }
 }

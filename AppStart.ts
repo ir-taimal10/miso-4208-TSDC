@@ -3,6 +3,11 @@ import Path = require("path");
 import "@tsed/multipartfiles";
 import {Scheduler} from "./TestingTool.Runner/utils/Scheduler";
 import "./TestingTool.Services/Middlewares/MultipartFilesOverrided";
+import * as multerS3 from 'multer-s3';
+import * as AWS from "aws-sdk";
+import {awsConfig} from "./TestingTool.Services/Config/AWSConfig";
+AWS.config.update(awsConfig);
+const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
 @ServerSettings({
     rootDir: Path.resolve(__dirname),
@@ -14,6 +19,18 @@ import "./TestingTool.Services/Middlewares/MultipartFilesOverrided";
     },
     statics: {
         "/": Path.join(__dirname, "reports")
+    },
+    multer: {
+        storage: multerS3({
+            s3: s3,
+            bucket: 'tsdcgrupo5',
+            metadata: function (req, file, cb) {
+                cb(null, {fieldName: file.fieldname});
+            },
+            key: function (req, file, cb) {
+                cb(null, `scriptTests/${req.params.idStrategy}/${req.params.testType}/${file.originalname}`)
+            }
+        })
     }
 })
 export class Server extends ServerLoader {

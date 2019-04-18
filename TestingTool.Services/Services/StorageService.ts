@@ -13,17 +13,33 @@ export class StorageService {
         this._s3 = new AWS.S3({apiVersion: '2006-03-01'});
     }
 
-    public async createFolder() {
-        const file = fs.existsSync('C:\\Users\\O-I-O\\Downloads\\MMA21C__180856974.pdf');
-        await  this._s3.upload({
-            Key: 'test/test.js',
+    public async uploadFileToS3(file, key) {
+        let location = "";
+        const uploadParams = {
             Bucket: 'tsdcgrupo5',
-            Body: fs.readFileSync(file),
-        }, (err) => {
-            if (err) {
-                console.log('error');
-            }
+            Key: '',
+            Body: '',
+            ACL: 'public-read'
+        };
+        const fileStream = fs.createReadStream('./uploads/' + file.filename);
+        fileStream.on('error', function (err) {
+            console.log('File Error', err);
         });
+        uploadParams.Body = fileStream;
+        uploadParams.Key = 'repository/original/' + key;
+
+        // call S3 to retrieve upload file to specified bucket
+        await this._s3.upload(uploadParams, function (err, data) {
+            if (err) {
+                console.log("Error", err);
+            }
+            if (data) {
+                console.log("uploadFileToS3: OK ", data.Location);
+            }
+            fs.unlink('./uploads/' + file.filename);
+            location = data.Location;
+        });
+        return location;
     }
 
 

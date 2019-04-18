@@ -34,24 +34,11 @@ export class StrategyController {
         return result || {};
     }
 
-    @Put("/:idStrategy/scripts")
-    async uploadStrategyScripts(request: Express.Request, response: Express.Response): Promise<any> {
-        const result = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
-        return result[0] || {};
+    @Put("/:idStrategy/:testType/scripts")
+    async uploadStrategyScripts(@MultipartFile("files") files: MulterFile[]): Promise<any> {
+        console.log("uploadStrategyScripts", files);
+        //const strategy = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
+        //const result = await this._storageService.uploadFileToS3(file, strategy.scriptPath);
+        return "empty"
     }
-
-
-    @Post('/file')
-    @MulterOptions({dest: "/other-dir"})
-    async uploadFile(@MultipartFile('file') file: MulterFile): Promise<any> {
-        return {};
-    }
-
-
-    @Post('/files')
-    async uploadFiles(@MultipartFile("files", 4) files: MulterFile[]): Promise<any> {
-        console.log("files: ", files);
-        return {};
-    }
-
 }
