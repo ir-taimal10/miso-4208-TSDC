@@ -36,9 +36,6 @@ export class StrategyController {
 
     @Put("/:idStrategy/:testType/scripts")
     async uploadStrategyScripts(@MultipartFile("files") files: MulterFile[]): Promise<any> {
-        console.log("uploadStrategyScripts", files);
-        //const strategy = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
-        //const result = await this._storageService.uploadFileToS3(file, strategy.scriptPath);
-        return "empty"
+        return files;
     }
 }
