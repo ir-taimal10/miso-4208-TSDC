@@ -3,7 +3,7 @@ export interface IStrategy {
     idAUT: string;
     name: string;
     description?: string;
-    tests: [];
+    definition: [];
     scriptPath: string;
     creationDate?: Date;
 }

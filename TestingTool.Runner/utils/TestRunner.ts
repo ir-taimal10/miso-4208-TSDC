@@ -4,6 +4,10 @@ import * as Q from "q";
 import * as PB from "progress";
 import * as fs from "fs-extra";
 import * as Path from "path";
+import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/StrategyPersistence";
+import {StorageService} from "../../TestingTool.Services/Services/StorageService";
+import {QueueService} from "../../TestingTool.Services/Services/QueueService";
+import {AUTPersistence} from "../../TestingTool.Persistence/Persistence/AUTPersistence";
 
 export class TestRunner {
     private sqs: any;
@@ -21,6 +25,11 @@ export class TestRunner {
         WaitTimeSeconds: 0
     };
 
+    private _strategyPersistence;
+    private _storageService;
+    private _queueService;
+    private _autPersistence;
+
     constructor() {
         AWS.config.update({
             accessKeyId: process.env.TSDC_SERVICES_ACCESS_KEY_ID,
@@ -29,61 +38,44 @@ export class TestRunner {
         });
         this.sqs = new AWS.SQS({apiVersion: '2012-11-05'});
         this.s3 = new AWS.S3({apiVersion: '2006-03-01'});
+        this._strategyPersistence = new StrategyPersistence();
+        this._storageService = new StorageService();
+        this._queueService = new QueueService();
+        this._autPersistence = new AUTPersistence();
     }
 
     async runStrategy() {
         console.log("┌───────────────┬───────────────┬──────────────────────┐");
-        console.log("│   Reloading Scripts  ...                                │");
-        await this.downloadScripts();
-        console.log("│   Loading Task From Queue  ...                          │");
-        await this.getTaskFromQueue();
+        console.log("│   Loading Task From Queue  ...                            │");
+        const task = await this._queueService.getTaskFromQueue();
+        console.log(`│   Loading Task From Queue   ${JSON.stringify(task)}       │`);
+        if (task) {
+            await this.processTask(task[0]);
+        }
         console.log("└───────────────┴───────────────┴──────────────────────┘");
     }
 
-    async getTaskFromQueue() {
-        await this.sqs.receiveMessage(this.params, async (err, data) => {
-            if (err) {
-                console.log("Receive Error", err);
-            } else {
-                if (data && data.Messages) {
-                    data.Messages.forEach(async (message, index) => {
-                        await this.deleteTaskFromQueue(message.ReceiptHandle);
-                        await this.processTask(message.Body);
+    async processTask(idStrategy: string) {
+        console.log("Test to execute: ", idStrategy);
+        const strategy = await this._strategyPersistence.getStrategy(idStrategy);
+        if (strategy && strategy.idAUT) {
+            await this.downloadScripts();
+            const aut = await this._autPersistence.getAUT(strategy.idAUT);
+            const testStrategy = strategy.definition;
+            if (testStrategy) {
+                if (aut.type == "mobile") {
+                    testStrategy.forEach(async (testName, index) => {
+                        await this.runMobileTest(testName, testStrategy.domain, testStrategy.apkName);
+                    });
+                }
+                else if (aut.type == "web") {
+                    testStrategy.forEach(async (testName, index) => {
+                        await this.runWebTest(testName, testStrategy.domain);
                     });
                 } else {
-                    console.log("No message to process");
+                    console.log("App type not supported ");
                 }
             }
-        });
-    }
-
-    public async deleteTaskFromQueue(receiptHandle) {
-        const deleteParams = {
-            QueueUrl: process.env.TSDC_SERVICES_QUEUE_URL,
-            ReceiptHandle: receiptHandle
-        };
-        await this.sqs.deleteMessage(deleteParams, async (err, data) => {
-            if (err) {
-                console.log("Delete Error", err);
-            }
-        });
-    }
-
-    async processTask(strategy: string) {
-        console.log("Test to execute: ", strategy);
-        //const testsToRun = testTypes.split(',');
-        const testStrategy = JSON.parse(strategy);
-        if (testStrategy.appType == "mobile") {
-            testStrategy.tests.forEach(async (testName, index) => {
-                await this.runMobileTest(testName, testStrategy.domain, testStrategy.apkName);
-            });
-        }
-        else if (testStrategy.appType == "web") {
-            testStrategy.tests.forEach(async (testName, index) => {
-                await this.runWebTest(testName, testStrategy.domain);
-            });
-        } else {
-            console.log("App type not supported ");
         }
     }
 

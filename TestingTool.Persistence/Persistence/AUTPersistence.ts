@@ -25,7 +25,7 @@ export class AUTPersistence {
             .then(function (rows) {
                 result = rows;
             });
-        return result;
+        return result[0] || {};
     }
 
     public async createAUT(aut: IAUT): Promise<any> {

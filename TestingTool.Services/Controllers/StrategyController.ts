@@ -4,15 +4,18 @@ import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/Str
 import {StorageService} from "../Services/StorageService";
 import {MulterOptions, MultipartFile} from "@tsed/multipartfiles";
 import {MulterFile} from "../../TestingTool.Persistence/Models/MulterFile";
+import {QueueService} from "../Services/QueueService";
 
 @Controller("/strategy")
 export class StrategyController {
     private _strategyPersistence;
     private _storageService;
+    private _queueService;
 
     constructor() {
         this._strategyPersistence = new StrategyPersistence();
         this._storageService = new StorageService();
+        this._queueService = new QueueService();
     }
 
     @Get("")
@@ -23,13 +26,24 @@ export class StrategyController {
 
     @Get("/:idStrategy")
     async getStrategy(request: Express.Request, response: Express.Response): Promise<any> {
-        const result = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
-        return result[0] || {};
+        const strategy = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
+        return strategy;
+    }
+
+    @Post("/:idStrategy/run")
+    async runStrategy(request: Express.Request, response: Express.Response): Promise<any> {
+        const strategy = await  this._strategyPersistence.getStrategy(request.params.idStrategy);
+        if (strategy && strategy.idStrategy) {
+            await this._queueService.pushTaskToQueue(strategy.idStrategy);
+            return strategy;
+        }else{
+            return {"error": "Strategy no exists"}
+        }
+
     }
 
     @Post("")
     async createStrategy(request: Express.Request, response: Express.Response): Promise<any> {
-        await this._storageService.createFolder();
         const result = await  this._strategyPersistence.createStrategy(request.body);
         return result || {};
     }

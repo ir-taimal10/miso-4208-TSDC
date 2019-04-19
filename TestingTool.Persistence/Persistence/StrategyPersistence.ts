@@ -14,7 +14,10 @@ export class StrategyPersistence {
         let result = null;
         await this._pool.query('select * from strategy')
             .then(function (rows) {
-                result = rows;
+                result = rows.map(row => {
+                    row.definition = JSON.parse(row.definition);
+                    return row;
+                });
             });
         return result;
     }
@@ -23,15 +26,19 @@ export class StrategyPersistence {
         let result = null;
         await this._pool.query("select * from strategy where idStrategy = ?", [idStrategy])
             .then(function (rows) {
-                result = rows;
+                result = rows.map(row => {
+                    row.definition = JSON.parse(row.definition);
+                    return row;
+                });
             });
-        return result;
+        return result[0] || {};
     }
 
     public async createStrategy(strategy: IStrategy): Promise<any> {
         strategy.idStrategy = Guid.raw();
+        strategy.scriptPath = `scriptTests/${strategy.idStrategy}`;
         strategy.creationDate = new Date();
-        await this._pool.query("insert into strategy values(?,?,?,?,?,?)",
+        await this._pool.query("insert into strategy values(?,?,?,?,?,?,?)",
             [
                 strategy.idStrategy,
                 strategy.name,
@@ -39,6 +46,7 @@ export class StrategyPersistence {
                 strategy.description,
                 strategy.scriptPath,
                 strategy.creationDate,
+                JSON.stringify(strategy.definition)
             ])
             .then(function (rows) {
             });

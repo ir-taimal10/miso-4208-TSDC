@@ -12,22 +12,27 @@ export class QueueService {
 
 
     public async getTaskFromQueue() {
-        let task = {};
-        await this._sqs.receiveMessage(queueConfig, async (err, data) => {
-            if (err) {
-                console.log("Receive Error", err);
-            } else {
-                if (data && data.Messages) {
-                    data.Messages.forEach(async (message, index) => {
-                        await this.deleteTaskFromQueue(message.ReceiptHandle);
-                        task = message.Body;
-                    });
+        let self = this;
+        return new Promise(function (resolve, reject) {
+            let tasks = [];
+            self._sqs.receiveMessage(queueConfig, async (err, data) => {
+                if (err) {
+                    console.log("Receive Error", err);
+                    reject();
                 } else {
-                    console.log("No message to process");
+                    if (data && data.Messages) {
+                        data.Messages.forEach(async (message, index) => {
+                            await self.deleteTaskFromQueue(message.ReceiptHandle);
+                            tasks.push(message.Body);
+                        });
+                        resolve(tasks);
+                    } else {
+                        console.log("│   No message to process ...                           │");
+                        resolve({});
+                    }
                 }
-            }
-        });
-        return task;
+            });
+        })
     }
 
     public async deleteTaskFromQueue(receiptHandle) {
@@ -41,4 +46,22 @@ export class QueueService {
             }
         });
     }
+
+
+    public async pushTaskToQueue(message) {
+        const params = {
+            DelaySeconds: 10,
+            QueueUrl: queueConfig.QueueUrl,
+            MessageBody: "Voice to process"
+        };
+        params.MessageBody = message;
+        await this._sqs.sendMessage(params, function (err, data) {
+            if (err) {
+                console.log("Error", err);
+            } else {
+                console.log("pushTaskToQueue : OK", data.MessageId);
+            }
+        });
+
+    };
 }
