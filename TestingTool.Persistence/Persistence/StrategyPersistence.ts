@@ -52,4 +52,28 @@ export class StrategyPersistence {
             });
         return strategy;
     }
+
+    public async createScriptPathStrategy(scriptPath: string, idStrategy: string): Promise<any> {
+        await this._pool.query("insert into script_path (idScriptPath,creationDate,scriptPath,idStrategy) values (?,?,?,?)",
+            [
+                Guid.raw(),
+                Date.now(),
+                scriptPath,
+                idStrategy
+            ]
+        ).then(function (rows) {
+        });
+        return true;
+    }
+
+    public async getScriptsPathStrategy(idStrategy: string): Promise<IStrategy> {
+        let result = null;
+        await this._pool.query("select * from script_path where idStrategy = '" + idStrategy + "'")
+            .then(function (rows) {
+                result = rows;
+            });
+        return result;
+
+    }
+
 }
