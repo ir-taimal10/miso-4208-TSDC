@@ -9,6 +9,7 @@ import {StorageService} from "../../TestingTool.Services/Services/StorageService
 import {QueueService} from "../../TestingTool.Services/Services/QueueService";
 import {AUTPersistence} from "../../TestingTool.Persistence/Persistence/AUTPersistence";
 import Extract = require('extract-zip');
+import {exec, cd} from "shelljs";
 
 export class TestRunner {
     private sqs: any;
@@ -30,6 +31,7 @@ export class TestRunner {
     private _storageService;
     private _queueService;
     private _autPersistence;
+    private _processCurrently;
 
     constructor() {
         AWS.config.update({
@@ -43,20 +45,23 @@ export class TestRunner {
         this._storageService = new StorageService();
         this._queueService = new QueueService();
         this._autPersistence = new AUTPersistence();
+        this._processCurrently = null;
     }
 
     async runStrategy() {
+
         console.log("┌───────────────┬───────────────┬──────────────────────┐");
         console.log("│   Loading Task From Queue  ...                            │");
         const task = await this._queueService.getTaskFromQueue();
         console.log(`│   Loading Task From Queue   ${JSON.stringify(task)}       │`);
         if (task) {
-            await this.processTask(task[0]);
+            this.processTask(task[0]);
         }
         console.log("└───────────────┴───────────────┴──────────────────────┘");
     }
 
     async processTask(idStrategy: string) {
+        console.log('id del proceso: ', process.pid);
         console.log('ProcessTask for strategy:', idStrategy);
         const strategy = await this._strategyPersistence.getStrategy(idStrategy);
         if (strategy && strategy.idAUT) {
@@ -66,12 +71,10 @@ export class TestRunner {
             if (scriptPathStrategy && scriptPathStrategy.length > 0) {
                 scriptPathStrategy.forEach(async (elementData) => {
                     const self = this;
-                    this.downloadScripts(elementData.scriptPath, idStrategy).then(function (result) {
+                    await this.downloadScripts(elementData.scriptPath, idStrategy).then(function (result) {
                         const testStrategy = strategy.definition;
                         if (aut.type == 'mobile') {
-                            testStrategy.forEach(async (testName) => {
-                                self.runMobileTest(testName, 'testStrategy.apkName');
-                            });
+                            self.runMobileTest(testStrategy, elementData, idStrategy, self, aut.url);
                         } else if (aut.type == 'web') {
                             self.runWebTest(testStrategy, elementData, idStrategy, self);
                         } else {
@@ -83,6 +86,19 @@ export class TestRunner {
         }
     }
 
+    public async runMobileTest(testStrategy, elementData, idStrategy, self, url: string) {
+        testStrategy.forEach(async (testName) => {
+            const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
+            const outputScriptTestsSpecific = output + '/runTests/' + idStrategy + '/' + testName + '/' + testName;
+            Extract(output + '/' + elementData.scriptPath, {dir: output + '/runTests/' + idStrategy + '/'}, (err, data) => {
+                if (err) {
+                    console.error('extraction failed111.');
+                }
+                self.prepareMobileTestName(outputScriptTestsSpecific, testName, output);
+                self.executeMobileCommand(testName, url, self);
+            });
+        });
+    }
 
     public async runWebTest(testStrategy, elementData, idStrategy, self) {
         testStrategy.forEach(async (testName) => {
@@ -93,7 +109,8 @@ export class TestRunner {
                     console.error('extraction failed111.');
                 }
                 self.prepareWebTestName(outputScriptTestsSpecific, testName, output);
-                self.executeCommand(testName);
+                let command = 'npm run test:' + testName;
+                self.executeCommand(command);
             });
         });
     }
@@ -110,22 +127,35 @@ export class TestRunner {
         }
     }
 
-    public async executeCommand(testName: string) {
+    public async prepareMobileTestName(outputScriptTestsSpecific: string, testName: string, output: string) {
+        if ('adb_monkey' == testName) {
+            console.log('prepared adb_monkey')
+        } else if ('calabash' == testName) {
+            //TODO REMOVE FILES miso-4208-TSDC/TestingTool.Runner/cypress because existing files..
+            fs.copy(outputScriptTestsSpecific, output + '/TestingTool.Runner/calabash/', err => {
+                if (err) return console.error(err)
+            });
+            //TODO REMOVE FILES scriptTests and runTests
+        } else {
+            console.log('testName not supported!')
+        }
+    }
+
+    public async executeCommand(command: string) {
         // TODO UPDATE STATE THE script_path TO PROCESSING
-        let command = 'npm run test:' + testName;
         console.log('Running test:', command);
         const util = new UtilsService();
-        await util.executeCommand(command).then(response => console.log('output', response));
+        await util.executeCommand(command).then(response => console.log('output', response.toString()));
         // TODO UPDATE STATE THE script_path TO FINISHED
         // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3 /Users/fredygonzalocaptuayonovoa/project/uniandes/miso-4208-TSDC/cypress/screenshots/limesurvey_test_e2e_spec.js
         console.log('Finished test:', command);
     }
 
-    public async runMobileTest(testName, apkName) {
+    public async executeMobileCommand(testName, apkName, self) {
         console.log('Running test:', testName);
-        const platform = process.platform;
-        if (testName == 'adb_monkey') {
-            let command = `./adb`;
+        if (testName == 'adb_monkey1') {
+            /*
+            let command = `./adb`;Running test:
             if (platform == 'win32') {
                 command = `adb`;
             }
@@ -139,14 +169,22 @@ export class TestRunner {
                             });
                         });
                 });
+             */
         } else if (testName == "calabash") {
-            let command = `calabash-android run ${apkName}`;
-            if (platform == 'win32') {
-                command = `calabash-android run ${apkName}`;
-            }
-            new UtilsService().executeCommand(command)
-                .then(response => console.log("output", response));
-            console.log("Test Mobile finished", platform);
+
+            let command = 'calabash-android run ' + apkName;
+            console.log("command " + command);
+            cd('/Users/fredygonzalocaptuayonovoa/project/uniandes/miso-4208-TSDC/TestingTool.Runner/calabash');
+            exec('pwd', code => {
+                console.log('Exit code:', code);
+                exec(command, code => {
+                    console.log('Exit code:', code);
+                });
+                console.log('Finished test:', command);
+            });
+            //var output = shell.exec('netstat -rn', {silent: true}).output;
+            //console.log(output);
+            //self.executeCommand(command);
         } else {
             console.log("Test mobile not supported");
         }
@@ -208,6 +246,8 @@ export class TestRunner {
     }
 
     public downloadScripts(scriptPathStrategy: string, idStrategy: string) {
+        console.log(this._processCurrently);
+        this._processCurrently = new Date();
         let self = this;
         return new Promise(function (resolve, reject) {
             self.s3.listObjects({
