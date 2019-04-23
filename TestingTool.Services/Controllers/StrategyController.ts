@@ -52,7 +52,7 @@ export class StrategyController {
     async uploadStrategyScripts(@MultipartFile("files") files: MulterFile[]): Promise<any> {
         var response = JSON.stringify(files[0]);
         var responseJson = JSON.parse(response);
-        await this._strategyPersistence.createScriptPathStrategy(responseJson.key, responseJson.metadata.idStrategy);
+        await this._strategyPersistence.createScriptPathStrategy(responseJson.key, responseJson.metadata.idStrategy, responseJson.metadata.testType);
         return responseJson;
     }
 }

@@ -51,9 +51,9 @@ export class TestRunner {
     async runStrategy() {
 
         console.log("┌───────────────┬───────────────┬──────────────────────┐");
-        console.log("│   Loading Task From Queue  ...                            │");
+        console.log("│   Loading Task From Queue  ...                       │");
         const task = await this._queueService.getTaskFromQueue();
-        console.log(`│   Loading Task From Queue   ${JSON.stringify(task)}       │`);
+        console.log(`│   Loading Task From Queue   ${JSON.stringify(task)}  │`);
         if (task) {
             this.processTask(task[0]);
         }
@@ -70,13 +70,15 @@ export class TestRunner {
 
             if (scriptPathStrategy && scriptPathStrategy.length > 0) {
                 scriptPathStrategy.forEach(async (elementData) => {
+                    console.log("step 010" + elementData.scriptPath);
                     const self = this;
                     await this.downloadScripts(elementData.scriptPath, idStrategy).then(function (result) {
                         const testStrategy = strategy.definition;
+                        const testName = elementData.testType;
                         if (aut.type == 'mobile') {
-                            self.runMobileTest(testStrategy, elementData, idStrategy, self, aut.url);
+                            self.runMobileTest(testStrategy, elementData, idStrategy, aut.url, testName);
                         } else if (aut.type == 'web') {
-                            self.runWebTest(testStrategy, elementData, idStrategy, self);
+                            self.runWebTest(testStrategy, elementData, idStrategy, testName);
                         } else {
                             console.log('App type not supported');
                         }
@@ -86,33 +88,30 @@ export class TestRunner {
         }
     }
 
-    public async runMobileTest(testStrategy, elementData, idStrategy, self, url: string) {
-        testStrategy.forEach(async (testName) => {
-            const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
-            const outputScriptTestsSpecific = output + '/runTests/' + idStrategy + '/' + testName + '/' + testName;
-            Extract(output + '/' + elementData.scriptPath, {dir: output + '/runTests/' + idStrategy + '/'}, (err, data) => {
-                if (err) {
-                    console.error('extraction failed111.');
-                }
-                self.prepareMobileTestName(outputScriptTestsSpecific, testName, output);
-                self.executeMobileCommand(testName, url, self);
-            });
-        });
-    }
-
-    public async runWebTest(testStrategy, elementData, idStrategy, self) {
-        testStrategy.forEach(async (testName) => {
-            const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
-            const outputScriptTestsSpecific = output + '/runTests/' + idStrategy + '/' + testName + '/' + testName;
-            Extract(output + '/' + elementData.scriptPath, {dir: output + '/runTests/' + idStrategy + '/'}, (err, data) => {
-                if (err) {
-                    console.error('extraction failed111.');
-                }
-                self.prepareWebTestName(outputScriptTestsSpecific, testName, output);
+    public async runWebTest(testStrategy, elementData, idStrategy, testName: string) {
+        const self = this;
+        console.log("step 011" + testName);
+        const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
+        const outputScriptTestsSpecific = output + '/runTests/' + idStrategy + '/' + testName + '/' + testName;
+        Extract(output + '/' + elementData.scriptPath, {dir: output + '/runTests/' + idStrategy + '/'}, (err, data) => {
+            if (err) {
+                console.error('extraction failed111.');
+            }
+            self.prepareWebTestName(outputScriptTestsSpecific, testName, output).then(() => {
                 let command = 'npm run test:' + testName;
                 self.executeCommand(command);
             });
         });
+    }
+
+    public async executeCommand(command: string) {
+        // TODO UPDATE STATE THE script_path TO PROCESSING
+        console.log('Running test:', command);
+        const util = new UtilsService();
+        await util.executeCommand(command).then(response => console.log('output', response.toString()));
+        // TODO UPDATE STATE THE script_path TO FINISHED
+        // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3 /Users/fredygonzalocaptuayonovoa/project/uniandes/miso-4208-TSDC/cypress/screenshots/
+        console.log('Finished test:', command);
     }
 
     public async prepareWebTestName(outputScriptTestsSpecific: string, testName: string, output: string) {
@@ -122,9 +121,30 @@ export class TestRunner {
                 if (err) return console.error(err)
             });
             //TODO REMOVE FILES scriptTests and runTests
+        } else if ('cucumber' == testName) {
+            //TODO REMOVE FILES miso-4208-TSDC/TestingTool.Runner/cypress because existing files..
+            fs.copy(outputScriptTestsSpecific, output + '/TestingTool.Runner/cucumber/', err => {
+                if (err) return console.error(err)
+            });
+            //TODO REMOVE FILES scriptTests and runTests
         } else {
             console.log('testName not supported!')
         }
+    }
+
+    public async runMobileTest(testStrategy, elementData, idStrategy, url: string, testName: string) {
+        const self = this;
+
+        const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
+        const outputScriptTestsSpecific = output + '/runTests/' + idStrategy + '/' + testName + '/' + testName;
+        Extract(output + '/' + elementData.scriptPath, {dir: output + '/runTests/' + idStrategy + '/'}, (err, data) => {
+            if (err) {
+                console.error('extraction failed111.');
+            }
+            self.prepareMobileTestName(outputScriptTestsSpecific, testName, output);
+            self.executeMobileCommand(testName, url);
+        });
+
     }
 
     public async prepareMobileTestName(outputScriptTestsSpecific: string, testName: string, output: string) {
@@ -141,17 +161,9 @@ export class TestRunner {
         }
     }
 
-    public async executeCommand(command: string) {
-        // TODO UPDATE STATE THE script_path TO PROCESSING
-        console.log('Running test:', command);
-        const util = new UtilsService();
-        await util.executeCommand(command).then(response => console.log('output', response.toString()));
-        // TODO UPDATE STATE THE script_path TO FINISHED
-        // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3 /Users/fredygonzalocaptuayonovoa/project/uniandes/miso-4208-TSDC/cypress/screenshots/limesurvey_test_e2e_spec.js
-        console.log('Finished test:', command);
-    }
 
-    public async executeMobileCommand(testName, apkName, self) {
+    public async executeMobileCommand(testName, apkName) {
+        const self = this;
         console.log('Running test:', testName);
         if (testName == 'adb_monkey1') {
             /*
@@ -174,6 +186,7 @@ export class TestRunner {
 
             let command = 'calabash-android run ' + apkName;
             console.log("command " + command);
+            const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
             cd('/Users/fredygonzalocaptuayonovoa/project/uniandes/miso-4208-TSDC/TestingTool.Runner/calabash');
             exec('pwd', code => {
                 console.log('Exit code:', code);
@@ -255,7 +268,7 @@ export class TestRunner {
             }, (err, data) => {
                 if (err) {
                     console.log(err);
-                    resolve({});
+                    reject;
                 }
                 if (data && data.Contents && data.Contents.length > 0) {
                     data.Contents.forEach(async (elementData, index) => {

@@ -53,13 +53,14 @@ export class StrategyPersistence {
         return strategy;
     }
 
-    public async createScriptPathStrategy(scriptPath: string, idStrategy: string): Promise<any> {
-        await this._pool.query("insert into script_path (idScriptPath,creationDate,scriptPath,idStrategy) values (?,?,?,?)",
+    public async createScriptPathStrategy(scriptPath: string, idStrategy: string, testType: string): Promise<any> {
+        await this._pool.query("insert into script_path (idScriptPath, creationDate, scriptPath, idStrategy, testType) values (?,?,?,?,?)",
             [
                 Guid.raw(),
                 Date.now(),
                 scriptPath,
-                idStrategy
+                idStrategy,
+                testType
             ]
         ).then(function (rows) {
         });

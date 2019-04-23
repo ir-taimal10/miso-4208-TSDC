@@ -8,7 +8,7 @@
     "tsc": "tsc",
     "test": "echo \"test specified\"",
     "test:calabash": "echo 'Hello World'",
-    "test:cucumber": "node ./myCucumber.js ScritpTests/cucumber/**/*.feature -f node_modules/cucumber-pretty",
+    "test:cucumber": "node ./myCucumber.js TestingTool.Runner/cucumber/**/*.feature -f node_modules/cucumber-pretty",
     "test:puppeteer": "jest --detectOpenHandles",
     "test:cypress": "cypress run --record --key cc6808e9-c5b6-4639-a0b7-5df6262b50d6 --headed",
     "server:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
