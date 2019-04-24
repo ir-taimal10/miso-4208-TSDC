@@ -1,4 +1,4 @@
 {
   "projectId": "v9c6tq",
-  "integrationFolder": "TestingTool.Runner/cypress"
+  "integrationFolder": "scriptTests/cypress"
 }

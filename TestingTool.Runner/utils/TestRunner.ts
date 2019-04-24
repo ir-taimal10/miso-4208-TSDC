@@ -8,8 +8,8 @@ import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/Str
 import {StorageService} from "../../TestingTool.Services/Services/StorageService";
 import {QueueService} from "../../TestingTool.Services/Services/QueueService";
 import {AUTPersistence} from "../../TestingTool.Persistence/Persistence/AUTPersistence";
-import Extract = require('extract-zip');
 import {exec, cd} from "shelljs";
+import {Guid} from "guid-typescript";
 
 export class TestRunner {
     private sqs: any;
@@ -26,6 +26,8 @@ export class TestRunner {
         VisibilityTimeout: 0,
         WaitTimeSeconds: 0
     };
+
+    private processId;
 
     private _strategyPersistence;
     private _storageService;
@@ -49,122 +51,68 @@ export class TestRunner {
     }
 
     async runStrategy() {
-
+        this.processId = Guid.raw();
         console.log("┌───────────────┬───────────────┬──────────────────────┐");
         console.log("│   Loading Task From Queue  ...                       │");
         const task = await this._queueService.getTaskFromQueue();
-        console.log(`│   Loading Task From Queue   ${JSON.stringify(task)}  │`);
+        task[0] ? console.log(`│   Loading Task From Queue   ${JSON.stringify(task)}  │`) : null;
         if (task) {
-            this.processTask(task[0]);
+            await this.processTask(task[0]);
         }
         console.log("└───────────────┴───────────────┴──────────────────────┘");
     }
 
     async processTask(idStrategy: string) {
-        console.log('id del proceso: ', process.pid);
-        console.log('ProcessTask for strategy:', idStrategy);
+        console.log('│   Process Id: ', this.processId);
+        idStrategy ? console.log('│   Process Task for strategy:', idStrategy) : null;
         const strategy = await this._strategyPersistence.getStrategy(idStrategy);
-        if (strategy && strategy.idAUT) {
-            const scriptPathStrategy = await this._strategyPersistence.getScriptsPathStrategy(idStrategy);
+        if (strategy && strategy.idAUT && strategy.scriptPath) {
             const aut = await this._autPersistence.getAUT(strategy.idAUT);
-
-            if (scriptPathStrategy && scriptPathStrategy.length > 0) {
-                scriptPathStrategy.forEach(async (elementData) => {
-                    console.log("step 010" + elementData.scriptPath);
-                    const self = this;
-                    await this.downloadScripts(elementData.scriptPath, idStrategy).then(function (result) {
-                        const testStrategy = strategy.definition;
-                        const testName = elementData.testType;
-                        if (aut.type == 'mobile') {
-                            self.runMobileTest(testStrategy, elementData, idStrategy, aut.url, testName);
-                        } else if (aut.type == 'web') {
-                            self.runWebTest(testStrategy, elementData, idStrategy, testName);
-                        } else {
-                            console.log('App type not supported');
-                        }
-                    });
-                });
+            await this._storageService.downloadFolder(strategy.scriptPath);
+            const testStrategy = strategy.definition;
+            if (testStrategy) {
+                if (aut.type == "mobile") {
+                    for (let index = 0; index < testStrategy.length; index++) {
+                        const testName = testStrategy[index];
+                        await this.runMobileTest(testName, aut.url);
+                    }
+                }
+                else if (aut.type == "web") {
+                    for (let index = 0; index < testStrategy.length; index++) {
+                        const testName = testStrategy[index];
+                        await this.runWebTest(testName, aut.url);
+                    }
+                } else {
+                    console.log("App type not supported ");
+                }
             }
         }
     }
 
-    public async runWebTest(testStrategy, elementData, idStrategy, testName: string) {
-        const self = this;
-        console.log("step 011" + testName);
-        const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
-        const outputScriptTestsSpecific = output + '/runTests/' + idStrategy + '/' + testName + '/' + testName;
-        Extract(output + '/' + elementData.scriptPath, {dir: output + '/runTests/' + idStrategy + '/'}, (err, data) => {
-            if (err) {
-                console.error('extraction failed111.');
-            }
-            self.prepareWebTestName(outputScriptTestsSpecific, testName, output).then(() => {
-                let command = 'npm run test:' + testName;
-                self.executeCommand(command);
-            });
-        });
-    }
 
-    public async executeCommand(command: string) {
+    public async runWebTest(testName: string, url: string) {
+        console.log("Running test: ", testName);
         // TODO UPDATE STATE THE script_path TO PROCESSING
-        console.log('Running test:', command);
         const util = new UtilsService();
-        await util.executeCommand(command).then(response => console.log('output', response.toString()));
+        const platform = process.platform;
+        let command = 'npm run test:' + testName; // this run in IOS
+        if (platform == 'win32') {
+            command = 'npm.cmd run test:' + testName;
+        }
+        await util.executeCommand(command);
+        console.log(`Test ${testName}, ${url} finished`, platform);
         // TODO UPDATE STATE THE script_path TO FINISHED
-        // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3 /Users/fredygonzalocaptuayonovoa/project/uniandes/miso-4208-TSDC/cypress/screenshots/
-        console.log('Finished test:', command);
+        // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3
     }
 
-    public async prepareWebTestName(outputScriptTestsSpecific: string, testName: string, output: string) {
-        if ('cypress' == testName) {
-            //TODO REMOVE FILES miso-4208-TSDC/TestingTool.Runner/cypress because existing files..
-            fs.copy(outputScriptTestsSpecific + '/integration', output + '/TestingTool.Runner/cypress/', err => {
-                if (err) return console.error(err)
-            });
-            //TODO REMOVE FILES scriptTests and runTests
-        } else if ('cucumber' == testName) {
-            //TODO REMOVE FILES miso-4208-TSDC/TestingTool.Runner/cypress because existing files..
-            fs.copy(outputScriptTestsSpecific, output + '/TestingTool.Runner/cucumber/', err => {
-                if (err) return console.error(err)
-            });
-            //TODO REMOVE FILES scriptTests and runTests
-        } else {
-            console.log('testName not supported!')
-        }
-    }
-
-    public async runMobileTest(testStrategy, elementData, idStrategy, url: string, testName: string) {
+    public async runMobileTest(testName: string, url: string) {
         const self = this;
-
-        const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
-        const outputScriptTestsSpecific = output + '/runTests/' + idStrategy + '/' + testName + '/' + testName;
-        Extract(output + '/' + elementData.scriptPath, {dir: output + '/runTests/' + idStrategy + '/'}, (err, data) => {
-            if (err) {
-                console.error('extraction failed111.');
-            }
-            self.prepareMobileTestName(outputScriptTestsSpecific, testName, output);
-            self.executeMobileCommand(testName, url);
-        });
-
+        await self.executeMobileCommand(testName, url);
     }
-
-    public async prepareMobileTestName(outputScriptTestsSpecific: string, testName: string, output: string) {
-        if ('adb_monkey' == testName) {
-            console.log('prepared adb_monkey')
-        } else if ('calabash' == testName) {
-            //TODO REMOVE FILES miso-4208-TSDC/TestingTool.Runner/cypress because existing files..
-            fs.copy(outputScriptTestsSpecific, output + '/TestingTool.Runner/calabash/', err => {
-                if (err) return console.error(err)
-            });
-            //TODO REMOVE FILES scriptTests and runTests
-        } else {
-            console.log('testName not supported!')
-        }
-    }
-
 
     public async executeMobileCommand(testName, apkName) {
-        const self = this;
         console.log('Running test:', testName);
+        const util = new UtilsService();
         if (testName == 'adb_monkey1') {
             /*
             let command = `./adb`;Running test:
@@ -183,108 +131,11 @@ export class TestRunner {
                 });
              */
         } else if (testName == "calabash") {
-
-            let command = 'calabash-android run ' + apkName;
+            const command = 'calabash-android run ' + Path.join(__dirname, '..', '..', '..', 'scriptTests', 'calabash', apkName);
             console.log("command " + command);
-            const output = Path.join(Path.join(__dirname, '..', '..', '..'), "");
-            cd('/Users/fredygonzalocaptuayonovoa/project/uniandes/miso-4208-TSDC/TestingTool.Runner/calabash');
-            exec('pwd', code => {
-                console.log('Exit code:', code);
-                exec(command, code => {
-                    console.log('Exit code:', code);
-                });
-                console.log('Finished test:', command);
-            });
-            //var output = shell.exec('netstat -rn', {silent: true}).output;
-            //console.log(output);
-            //self.executeCommand(command);
+            await util.execute(command);
         } else {
             console.log("Test mobile not supported");
         }
-    }
-
-    public async downloadFile(filename: string, scriptPathStrategy: string, idStrategy: string) {
-
-        const self = this;
-        const outputDir = Path.join(__dirname, '..', '..', '..');
-        const deferred = Q.defer();
-        const output = Path.join(outputDir, filename);
-        const params = {
-            Bucket: 'tsdcgrupo5',
-            Key: filename
-        };
-        let bar;
-
-        if (scriptPathStrategy === (filename)) {
-            // TODO UPDATE STATE THE script_path TO SET_UP
-            if (!fs.existsSync(Path.dirname(output))) {
-                fs.ensureDir(Path.dirname(output))
-                    .then(() => {
-                            const stream = fs.createWriteStream(output);
-                            self.s3.getObject(params)
-                                .on('httpHeaders', function (statusCode, headers, resp) {
-                                    // console.log('get file from s3 headers');
-                                    const len = parseInt(headers['content-length'], 10);
-                                    bar = new PB('  ' + filename + ': [:bar] :percent :etas', {
-                                        complete: '=',
-                                        incomplete: ' ',
-                                        width: 20,
-                                        total: len
-                                    });
-                                })
-                                .on('httpData', function (chunk) {
-                                    // console.log('get file from s3 data');
-                                    stream.write(chunk);
-                                    bar.tick(chunk.length);
-                                })
-                                .on('httpDone', function (response) {
-                                    // console.log('get file from s3 done');
-                                    if (response.error) {
-                                        deferred.reject(response.error);
-                                    } else {
-                                        deferred.resolve(output);
-                                    }
-                                    stream.end();
-                                })
-                                .send();
-
-                        }
-                    )
-                    .catch(err => {
-                        console.error(err)
-                    })
-            }
-        }
-        return deferred.promise;
-    }
-
-    public downloadScripts(scriptPathStrategy: string, idStrategy: string) {
-        console.log(this._processCurrently);
-        this._processCurrently = new Date();
-        let self = this;
-        return new Promise(function (resolve, reject) {
-            self.s3.listObjects({
-                Bucket: 'tsdcgrupo5'
-            }, (err, data) => {
-                if (err) {
-                    console.log(err);
-                    reject();
-                }
-                if (data && data.Contents && data.Contents.length > 0) {
-                    data.Contents.forEach(async (elementData, index) => {
-                        if (elementData.Size != 0) {
-                            if (scriptPathStrategy === (elementData.Key)) {
-                                await self.downloadFile(elementData.Key, scriptPathStrategy, idStrategy).then(() => {
-                                        resolve({});
-                                    }
-                                )
-                            }
-                        }
-                    });
-                } else {
-                    resolve({});
-                }
-            });
-        });
     }
 }

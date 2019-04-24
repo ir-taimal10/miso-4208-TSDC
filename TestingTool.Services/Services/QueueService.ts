@@ -27,7 +27,7 @@ export class QueueService {
                         });
                         resolve(tasks);
                     } else {
-                        console.log("│   No message to process ...                           │");
+                        console.log("│   No message to process ...                          │");
                         resolve({});
                     }
                 }

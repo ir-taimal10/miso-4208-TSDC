@@ -23,8 +23,6 @@ export class Scheduler {
                     this.status = "BUSY";
                     await testRunner.runStrategy();
                     this.status = "IDLE";
-                } else {
-                    console.log("│   worker is            BUSY                │");
                 }
             });
         } else {

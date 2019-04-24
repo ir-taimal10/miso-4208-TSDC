@@ -1,7 +1,7 @@
 import * as xml2js from "xml2js";
 import * as fs from "fs";
 import * as node_cmd from 'node-run-cmd';
-
+import {exec, cd} from "shelljs";
 
 export class UtilsService {
     public xml2js(xml: any) {
@@ -90,8 +90,28 @@ export class UtilsService {
         });
     };
 
+
+    public async execute(command: string) {
+        return new Promise((resolve, reject) => {
+            exec(command, code => {
+                console.log('Exit code:', code);
+                resolve(code);
+            });
+        });
+    }
+
     public executeCommand = command => {
-           return  node_cmd.run(command);
+        return new Promise((resolve, reject) => {
+            console.log(`UtilsService executeCommand start: command = ${command}`);
+            node_cmd.run(command)
+                .then(function (exitCodes) {
+                    console.log(`UtilsService executeCommand ends: exitCodes = ${exitCodes}`);
+                    resolve();
+                }, function (err) {
+                    console.log(`UtilsService executeCommand ends: error = ${err}`);
+                    reject(err);
+                });
+        });
     };
 
     public executeCommandsWithOptions = (commands, options) => {

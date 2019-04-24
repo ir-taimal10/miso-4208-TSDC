@@ -1,12 +1,14 @@
 import * as AWS from "aws-sdk";
 import * as fs from "fs-extra";
-import * as Q from "q";
 import * as PB from "progress";
 import {awsConfig} from "../Config/AWSConfig";
 import * as Path from "path";
+import * as Extract from 'extract-zip';
 
 export class StorageService {
     private _s3;
+    private BUCKET_NAME = "tsdcgrupo5";
+    private WORK_FOLDER = Path.join(__dirname, '..', '..', '..');
 
     constructor() {
         AWS.config.update(awsConfig);
@@ -16,7 +18,7 @@ export class StorageService {
     public async uploadFileToS3(file, key) {
         let location = "";
         const uploadParams = {
-            Bucket: 'tsdcgrupo5',
+            Bucket: this.BUCKET_NAME,
             Key: '',
             Body: '',
             ACL: 'public-read'
@@ -45,15 +47,14 @@ export class StorageService {
 
     public async downloadFile(filename) {
         const self = this;
-        const outputDir = Path.join(__dirname, '..', '..', '..');
-        const deferred = Q.defer();
+        const outputDir = self.WORK_FOLDER;
         const output = Path.join(outputDir, filename);
         const params = {
-            Bucket: 'tsdcgrupo5',
+            Bucket: this.BUCKET_NAME,
             Key: filename
         };
         let bar;
-        if (!fs.existsSync(Path.dirname(output))) {
+        return new Promise(function (resolve, reject) {
             fs.ensureDir(Path.dirname(output))
                 .then(() => {
                     const stream = fs.createWriteStream(output);
@@ -76,9 +77,9 @@ export class StorageService {
                         .on('httpDone', function (response) {
                             // console.log('get file from s3 done');
                             if (response.error) {
-                                deferred.reject(response.error);
+                                reject(response.error);
                             } else {
-                                deferred.resolve(output);
+                                resolve(output);
                             }
                             stream.end();
                         })
@@ -87,24 +88,63 @@ export class StorageService {
                 .catch(err => {
                     console.error(err)
                 })
-        }
-        return deferred.promise;
+        });
     }
 
-    public async downloadFolder() {
-        this._s3.listObjects({
-            Bucket: 'tsdcgrupo5'
-        }, (err, data) => {
-            if (err) {
-                console.log(err);
-            }
-            if (data && data.Contents && data.Contents.length > 0) {
-                data.Contents.forEach(async (elementData, index) => {
-                    if (elementData.Size != 0) {
-                        await this.downloadFile(elementData.Key)
-                    }
-                });
-            }
+
+    private async listObjects() {
+        const self = this;
+        return new Promise(function (resolve, reject) {
+            self._s3.listObjects({
+                Bucket: self.BUCKET_NAME
+            }, (err, data: any) => {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                resolve(data);
+            });
         });
+    }
+
+    private async extractZip(filePath) {
+        const dir = Path.parse(filePath).dir;
+        const name = Path.parse(filePath).name;
+        return new Promise(function (resolve, reject) {
+            Extract(filePath, {dir: Path.join(dir, '..', name)},
+                async (err, data) => {
+                    if (err) {
+                        console.error('extraction failed.');
+                        reject();
+                    }
+                    resolve(data);
+                });
+        })
+    }
+
+    private async emptyFolderBase() {
+        await fs.emptyDirSync(Path.join(this.WORK_FOLDER, 'scriptTests'));
+    }
+
+    public async downloadFolder(folderPath: string) {
+        await this.emptyFolderBase();
+        const object: any = await this.listObjects();
+        let elementsDownloaded = [];
+        if (object && object.Contents && object.Contents.length > 0) {
+            for (let index = 0; index < object.Contents.length; index++) {
+                const elementData = object.Contents[index];
+                if (elementData.Size != 0 && elementData.Key.indexOf(folderPath) >= 0) {
+                    elementsDownloaded.push(elementData.Key);
+                    const output = await this.downloadFile(elementData.Key);
+                    if (elementData.Key.indexOf(".zip") >= 0) {
+                        await this.extractZip(output);
+                        console.log("output", output);
+                    }
+                }
+            }
+            if (elementsDownloaded.length > 0) {
+                console.log("elementsDownloaded", elementsDownloaded);
+            }
+        }
     }
 }

@@ -36,7 +36,7 @@ const s3 = new AWS.S3({apiVersion: '2006-03-01'});
                 );
             },
             key: function (req, file, cb) {
-                cb(null, `scriptTests/${req.params.idStrategy}/${req.params.testType}/${file.originalname}`)
+                cb(null, `scriptTests/${req.params.idStrategy}/${req.params.testType}.zip`)
             }
         })
     }
