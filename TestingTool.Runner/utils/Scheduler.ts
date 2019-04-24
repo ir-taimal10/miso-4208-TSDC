@@ -2,6 +2,8 @@ import * as Cron from "node-cron";
 import {TestRunner} from "./TestRunner";
 
 export class Scheduler {
+    private status: "BUSY" | "IDLE" = "IDLE";
+
     constructor() {
     }
 
@@ -17,7 +19,13 @@ export class Scheduler {
             console.log("└───────────────┴───────────────┴──────────────────────┘");
             await testRunner.runStrategy();
             Cron.schedule(period, async () => {
-                await testRunner.runStrategy();
+                if (this.status == "IDLE") {
+                    this.status = "BUSY";
+                    await testRunner.runStrategy();
+                    this.status = "IDLE";
+                } else {
+                    console.log("│   worker is            BUSY                │");
+                }
             });
         } else {
             console.log("┌───────────────┬───────────────┬──────────────────────┐");

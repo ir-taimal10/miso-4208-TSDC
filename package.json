@@ -17,8 +17,7 @@
     "test:comparer": "tsc && node ./build/TestingTool.Services/compareScreenshotApp/ComparerScreenshot.js IMG_TO=$IMG_TO IMG_FORM=$IMG_FORM"
   },
   "repository": {
-    "type": "git",
-    "url": "https://bizagidev.visualstudio.com/DefaultCollection/FrontEnd/_git/DMN"
+    "type": "git"
   },
   "author": "",
   "license": "ISC",

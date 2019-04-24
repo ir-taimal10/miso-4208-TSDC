@@ -70,7 +70,7 @@ export class Server extends ServerLoader {
         const args = process.argv;
         if (args.indexOf('--worker') > 0) {
             const scheduler = new Scheduler();
-            scheduler.start("* * * * *");
+            scheduler.start("20,40,59 * * * * *");
         }
     }
 

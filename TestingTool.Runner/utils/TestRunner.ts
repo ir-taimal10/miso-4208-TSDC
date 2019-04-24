@@ -268,7 +268,7 @@ export class TestRunner {
             }, (err, data) => {
                 if (err) {
                     console.log(err);
-                    reject;
+                    reject();
                 }
                 if (data && data.Contents && data.Contents.length > 0) {
                     data.Contents.forEach(async (elementData, index) => {
