@@ -5,15 +5,18 @@ import {StorageService} from "../Services/StorageService";
 import {MultipartFile} from "@tsed/multipartfiles";
 import {MulterFile} from "../../TestingTool.Persistence/Models/MulterFile";
 import {QueueService} from "../Services/QueueService";
+import {StrategyTracePersistence} from "../../TestingTool.Persistence/Persistence/StrategyTracePersistence";
 
 @Controller("/strategy")
 export class StrategyController {
     private _strategyPersistence;
     private _storageService;
     private _queueService;
+    private _strategyTracePersistence;
 
     constructor() {
         this._strategyPersistence = new StrategyPersistence();
+        this._strategyTracePersistence = new StrategyTracePersistence();
         this._storageService = new StorageService();
         this._queueService = new QueueService();
     }
@@ -28,6 +31,12 @@ export class StrategyController {
     async getStrategy(request: Express.Request, response: Express.Response): Promise<any> {
         const strategy = await this._strategyPersistence.getStrategy(request.params.idStrategy);
         return strategy;
+    }
+
+    @Get("/:idStrategy/trace")
+    async getStrategyTraces(request: Express.Request, response: Express.Response): Promise<any> {
+        const strategyTraces = await  this._strategyTracePersistence.getStrategyTraces(request.params.idStrategy);
+        return strategyTraces;
     }
 
     @Post("/:idStrategy/run")
@@ -50,9 +59,13 @@ export class StrategyController {
 
     @Put("/:idStrategy/:testType/scripts")
     async uploadStrategyScripts(@MultipartFile("files") files: MulterFile[]): Promise<any> {
-        var response = JSON.stringify(files[0]);
-        var responseJson = JSON.parse(response);
-        await this._strategyPersistence.createScriptPathStrategy(responseJson.key, responseJson.metadata.idStrategy, responseJson.metadata.testType);
+        const response = JSON.stringify(files[0]);
+        const responseJson = JSON.parse(response);
+        await this._strategyPersistence.createScriptPathStrategy({
+            scriptPath: responseJson.key,
+            idStrategy: responseJson.metadata.idStrategy,
+            testType: responseJson.metadata.testType
+        });
         return responseJson;
     }
 }

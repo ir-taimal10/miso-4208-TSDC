@@ -2,6 +2,7 @@ import * as mysql from 'promise-mysql';
 import {config} from "../Config/PersistenceConfig";
 import {IStrategy} from "../Models/Strategy";
 import {Guid} from "guid-typescript";
+import {IStrategyScriptPath} from "../Models/StrategyScriptPath";
 
 export class StrategyPersistence {
     private _pool;
@@ -53,23 +54,26 @@ export class StrategyPersistence {
         return strategy;
     }
 
-    public async createScriptPathStrategy(scriptPath: string, idStrategy: string, testType: string): Promise<any> {
-        await this._pool.query("insert into script_path (idScriptPath, creationDate, scriptPath, idStrategy, testType) values (?,?,?,?,?)",
+    public async createScriptPathStrategy(strategyScriptPath: IStrategyScriptPath): Promise<any> {
+        strategyScriptPath.creationDate = new Date();
+        strategyScriptPath.idScriptPath = Guid.raw();
+        await this._pool.query("insert into script_path (idScriptPath, creationDate, scriptPath, idStrategy, state,  testType) values (?,?,?,?,?,?)",
             [
-                Guid.raw(),
-                Date.now(),
-                scriptPath,
-                idStrategy,
-                testType
+                strategyScriptPath.idScriptPath,
+                strategyScriptPath.creationDate,
+                strategyScriptPath.scriptPath,
+                strategyScriptPath.idStrategy,
+                strategyScriptPath.status,
+                strategyScriptPath.testType
             ]
         ).then(function (rows) {
         });
-        return true;
+        return strategyScriptPath;
     }
 
-    public async getScriptsPathStrategy(idStrategy: string): Promise<IStrategy> {
+    public async getScriptsPathStrategy(idStrategy: string): Promise<IStrategyScriptPath> {
         let result = null;
-        await this._pool.query("select * from script_path where idStrategy = '" + idStrategy + "'")
+        await this._pool.query("select * from script_path where idStrategy = ?", [idStrategy])
             .then(function (rows) {
                 result = rows;
             });

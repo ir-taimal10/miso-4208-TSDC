@@ -292,3 +292,12 @@ Thumbs.db
 **/ScriptTest/**
 **/ScriptTest/**/**
 ScriptTest/**/
+
+
+**/scriptTests/**
+**/scriptTests/**/**
+scriptTests/**/
+
+**/cypress/**
+**/cypress/**/**
+cypress/**/

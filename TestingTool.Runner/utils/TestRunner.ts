@@ -1,8 +1,4 @@
-import * as AWS from 'aws-sdk';
 import {UtilsService} from "./UtilsService";
-import * as Q from "q";
-import * as PB from "progress";
-import * as fs from "fs-extra";
 import * as Path from "path";
 import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/StrategyPersistence";
 import {StorageService} from "../../TestingTool.Services/Services/StorageService";
@@ -10,48 +6,29 @@ import {QueueService} from "../../TestingTool.Services/Services/QueueService";
 import {AUTPersistence} from "../../TestingTool.Persistence/Persistence/AUTPersistence";
 import {exec, cd} from "shelljs";
 import {Guid} from "guid-typescript";
+import {StrategyTracePersistence} from "../../TestingTool.Persistence/Persistence/StrategyTracePersistence";
+import {IProcess} from "../../TestingTool.Persistence/Models/Process";
 
 export class TestRunner {
-    private sqs: any;
-    private s3: any;
-    private params: any = {
-        AttributeNames: [
-            "SentTimestamp"
-        ],
-        MaxNumberOfMessages: 1,
-        MessageAttributeNames: [
-            "All"
-        ],
-        QueueUrl: process.env.TSDC_SERVICES_QUEUE_URL,
-        VisibilityTimeout: 0,
-        WaitTimeSeconds: 0
-    };
-
-    private processId;
 
     private _strategyPersistence;
+    private _strategyTracePersistence;
     private _storageService;
     private _queueService;
     private _autPersistence;
-    private _processCurrently;
+    private currentProcess: IProcess;
 
     constructor() {
-        AWS.config.update({
-            accessKeyId: process.env.TSDC_SERVICES_ACCESS_KEY_ID,
-            secretAccessKey: process.env.TSDC_SERVICES_SECRET_KEY,
-            region: 'us-west-2'
-        });
-        this.sqs = new AWS.SQS({apiVersion: '2012-11-05'});
-        this.s3 = new AWS.S3({apiVersion: '2006-03-01'});
         this._strategyPersistence = new StrategyPersistence();
+        this._strategyTracePersistence = new StrategyTracePersistence();
         this._storageService = new StorageService();
         this._queueService = new QueueService();
         this._autPersistence = new AUTPersistence();
-        this._processCurrently = null;
+        this.currentProcess = {};
     }
 
     async runStrategy() {
-        this.processId = Guid.raw();
+        this.currentProcess.idProcess = Guid.raw();
         console.log("┌───────────────┬───────────────┬──────────────────────┐");
         console.log("│   Loading Task From Queue  ...                       │");
         const task = await this._queueService.getTaskFromQueue();
@@ -63,11 +40,14 @@ export class TestRunner {
     }
 
     async processTask(idStrategy: string) {
-        console.log('│   Process Id: ', this.processId);
+        console.log('│   Process Id: ', this.currentProcess.idProcess);
         idStrategy ? console.log('│   Process Task for strategy:', idStrategy) : null;
         const strategy = await this._strategyPersistence.getStrategy(idStrategy);
         if (strategy && strategy.idAUT && strategy.scriptPath) {
             const aut = await this._autPersistence.getAUT(strategy.idAUT);
+            this.currentProcess.aut = aut;
+            this.currentProcess.strategy = strategy;
+            await this.registerStrategyTrace("INIT", `Init task ${idStrategy}`);
             await this._storageService.downloadFolder(strategy.scriptPath);
             const testStrategy = strategy.definition;
             if (testStrategy) {
@@ -76,8 +56,7 @@ export class TestRunner {
                         const testName = testStrategy[index];
                         await this.runMobileTest(testName, aut.url);
                     }
-                }
-                else if (aut.type == "web") {
+                } else if (aut.type == "web") {
                     for (let index = 0; index < testStrategy.length; index++) {
                         const testName = testStrategy[index];
                         await this.runWebTest(testName, aut.url);
@@ -92,7 +71,7 @@ export class TestRunner {
 
     public async runWebTest(testName: string, url: string) {
         console.log("Running test: ", testName);
-        // TODO UPDATE STATE THE script_path TO PROCESSING
+        await this.registerStrategyTrace("RUNNING", `Running ${testName}`);
         const util = new UtilsService();
         const platform = process.platform;
         let command = 'npm run test:' + testName; // this run in IOS
@@ -101,7 +80,7 @@ export class TestRunner {
         }
         await util.executeCommand(command);
         console.log(`Test ${testName}, ${url} finished`, platform);
-        // TODO UPDATE STATE THE script_path TO FINISHED
+        await this.registerStrategyTrace("FINISHED", `Test ${testName}, ${url} finished`);
         // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3
     }
 
@@ -112,6 +91,7 @@ export class TestRunner {
 
     public async executeMobileCommand(testName, apkName) {
         console.log('Running test:', testName);
+        await this.registerStrategyTrace("RUNNING", `Running ${testName}`);
         const util = new UtilsService();
         if (testName == 'adb_monkey1') {
             /*
@@ -131,11 +111,22 @@ export class TestRunner {
                 });
              */
         } else if (testName == "calabash") {
+
             const command = 'calabash-android run ' + Path.join(__dirname, '..', '..', '..', 'scriptTests', 'calabash', apkName);
             console.log("command " + command);
             await util.execute(command);
+            await this.registerStrategyTrace("FINISHED", `Test ${testName}, ${apkName} finished`);
         } else {
             console.log("Test mobile not supported");
         }
+    }
+
+    private async registerStrategyTrace(status: string, trace: string) {
+        await this._strategyTracePersistence.registerStrategyTrace({
+            status: status,
+            idProcess: this.currentProcess.idProcess,
+            idStrategy: this.currentProcess.strategy.idStrategy,
+            trace: trace
+        });
     }
 }
