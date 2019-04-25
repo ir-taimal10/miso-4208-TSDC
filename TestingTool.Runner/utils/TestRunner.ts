@@ -77,7 +77,7 @@ export class TestRunner {
         if (platform == 'win32') {
             command = 'npm.cmd run test:' + testName;
         }
-        await util.executeCommand(command);
+        await util.execute(command);
         console.log(`Test ${testName}, ${url} finished`, platform);
         await this.registerStrategyTrace("FINISHED", `Test ${testName}, ${url} finished`);
         // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3
