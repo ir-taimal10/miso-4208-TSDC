@@ -100,6 +100,10 @@ export class UtilsService {
         });
     }
 
+    public cd(url: string) {
+            cd(url);
+    }
+
     public executeCommand = command => {
         return new Promise((resolve, reject) => {
             console.log(`UtilsService executeCommand start: command = ${command}`);
