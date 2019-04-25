@@ -4,7 +4,6 @@ import {StrategyPersistence} from "../../TestingTool.Persistence/Persistence/Str
 import {StorageService} from "../../TestingTool.Services/Services/StorageService";
 import {QueueService} from "../../TestingTool.Services/Services/QueueService";
 import {AUTPersistence} from "../../TestingTool.Persistence/Persistence/AUTPersistence";
-import {exec, cd} from "shelljs";
 import {Guid} from "guid-typescript";
 import {StrategyTracePersistence} from "../../TestingTool.Persistence/Persistence/StrategyTracePersistence";
 import {IProcess} from "../../TestingTool.Persistence/Models/Process";
@@ -111,9 +110,9 @@ export class TestRunner {
                 });
              */
         } else if (testName == "calabash") {
-
-            const command = 'calabash-android run ' + Path.join(__dirname, '..', '..', '..', 'scriptTests', 'calabash', apkName);
-            console.log("command " + command);
+            util.cd(Path.join(__dirname, '..', '..', '..', 'scriptTests', 'calabash'));
+            await util.execute('pwd');
+            const command = 'calabash-android run ' + apkName;
             await util.execute(command);
             await this.registerStrategyTrace("FINISHED", `Test ${testName}, ${apkName} finished`);
         } else {
