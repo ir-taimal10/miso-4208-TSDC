@@ -15,36 +15,6 @@ export class StorageService {
         this._s3 = new AWS.S3({apiVersion: '2006-03-01'});
     }
 
-    public async uploadFileToS3(file, key) {
-        let location = "";
-        const uploadParams = {
-            Bucket: this.BUCKET_NAME,
-            Key: '',
-            Body: '',
-            ACL: 'public-read'
-        };
-        const fileStream = fs.createReadStream('./uploads/' + file.filename);
-        fileStream.on('error', function (err) {
-            console.log('File Error', err);
-        });
-        uploadParams.Body = fileStream;
-        uploadParams.Key = 'repository/original/' + key;
-
-        // call S3 to retrieve upload file to specified bucket
-        await this._s3.upload(uploadParams, function (err, data) {
-            if (err) {
-                console.log("Error", err);
-            }
-            if (data) {
-                console.log("uploadFileToS3: OK ", data.Location);
-            }
-            fs.unlink('./uploads/' + file.filename);
-            location = data.Location;
-        });
-        return location;
-    }
-
-
     public async downloadFile(filename) {
         const self = this;
         const outputDir = self.WORK_FOLDER;
@@ -147,4 +117,55 @@ export class StorageService {
             }
         }
     }
+
+    public async uploadFromDir(startPath, idProcess, filter) {
+        const self = this;
+        if (!fs.existsSync(startPath)) {
+            console.log("no dir ", startPath);
+            return;
+        }
+        let files = fs.readdirSync(startPath);
+        for (let i = 0; i < files.length; i++) {
+            let filePath = Path.join(startPath, files[i]);
+            let stat = fs.lstatSync(filePath);
+            if (stat.isDirectory()) {
+                await this.uploadFromDir(filePath, idProcess, filter); //recurse
+            }
+            else if (filePath.indexOf(filter) >= 0) {
+                console.log('-- found: ', filePath);
+                const baseName = Path.basename(filePath);
+                await self.uploadFileToS3(filePath, `${idProcess}/${baseName}`);
+            }
+        }
+    }
+
+
+    public async uploadFileToS3(filePath, key) {
+        let location = "";
+        const uploadParams = {
+            Bucket: this.BUCKET_NAME,
+            Key: '',
+            Body: ''
+        };
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.on('error', function (err) {
+            console.log('File Error', err);
+        });
+        uploadParams.Body = fileStream;
+        uploadParams.Key = 'screenTests/' + key;
+
+        // call S3 to retrieve upload file to specified bucket
+        await this._s3.upload(uploadParams, function (err, data) {
+            if (err) {
+                console.log("Error", err);
+            }
+            if (data) {
+                console.log("uploadFileToS3: OK ", data);
+            }
+            //fs.unlink(filePath);
+
+        });
+        return location;
+    }
+
 }

@@ -79,8 +79,8 @@ export class TestRunner {
         }
         await util.executeCommand(command);
         console.log(`Test ${testName}, ${url} finished`, platform);
+        await this.uploadScreenShots();
         await this.registerStrategyTrace("FINISHED", `Test ${testName}, ${url} finished`);
-        // TODO COPY SCREENSHOTS TO UBICATIONS FOR LOAD TO S3
     }
 
     public async runMobileTest(testName: string, url: string) {
@@ -118,6 +118,11 @@ export class TestRunner {
         } else {
             console.log("Test mobile not supported");
         }
+    }
+
+    private async uploadScreenShots() {
+        const screenShotsDir = Path.join(__dirname, '..', '..', '..', 'scriptTests');
+        await this._storageService.uploadFromDir(screenShotsDir,  this.currentProcess.idProcess, '.png');
     }
 
     private async registerStrategyTrace(status: string, trace: string) {
