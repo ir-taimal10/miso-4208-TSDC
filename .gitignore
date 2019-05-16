@@ -298,6 +298,10 @@ ScriptTest/**/
 **/scriptTests/**/**
 scriptTests/**/
 
+**/screenTests/**
+**/screenTests/**/**
+screenTests/**/
+
 **/cypress/**
 **/cypress/**/**
 cypress/**/

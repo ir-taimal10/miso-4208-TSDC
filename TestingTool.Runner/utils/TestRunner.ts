@@ -7,6 +7,7 @@ import {AUTPersistence} from "../../TestingTool.Persistence/Persistence/AUTPersi
 import {Guid} from "guid-typescript";
 import {StrategyTracePersistence} from "../../TestingTool.Persistence/Persistence/StrategyTracePersistence";
 import {IProcess} from "../../TestingTool.Persistence/Models/Process";
+import {ImageCompareService} from "../../TestingTool.Services/Services/ImageCompareService";
 
 export class TestRunner {
 
@@ -15,7 +16,9 @@ export class TestRunner {
     private _storageService;
     private _queueService;
     private _autPersistence;
+    private _imageCompareService;
     private currentProcess: IProcess;
+    private IMAGES_FOLDER = 'screenTests';
 
     constructor() {
         this._strategyPersistence = new StrategyPersistence();
@@ -23,6 +26,7 @@ export class TestRunner {
         this._storageService = new StorageService();
         this._queueService = new QueueService();
         this._autPersistence = new AUTPersistence();
+        this._imageCompareService = new ImageCompareService();
         this.currentProcess = {};
     }
 
@@ -47,6 +51,7 @@ export class TestRunner {
             this.currentProcess.aut = aut;
             this.currentProcess.strategy = strategy;
             await this.registerStrategyTrace("INIT", `Init task ${idStrategy}`);
+            await this._storageService.emptyFolderBase('scriptTests');
             await this._storageService.downloadFolder(strategy.scriptPath);
             const testStrategy = strategy.definition;
             if (testStrategy) {
@@ -58,7 +63,11 @@ export class TestRunner {
                 } else if (aut.type == "web") {
                     for (let index = 0; index < testStrategy.length; index++) {
                         const testName = testStrategy[index];
-                        await this.runWebTest(testName, aut.url);
+                        if (testName === "vrt") {
+                            await this.runVRT(strategy.idStrategy);
+                        } else {
+                            await this.runWebTest(testName, aut.url);
+                        }
                     }
                 } else {
                     console.log("App type not supported ");
@@ -81,6 +90,22 @@ export class TestRunner {
         console.log(`Test ${testName}, ${url} finished`, platform);
         await this.uploadScreenShots();
         await this.registerStrategyTrace("FINISHED", `Test ${testName}, ${url} finished`);
+    }
+
+
+    public async runVRT(idStrategy: string) {
+        const lastStrategyProcess = await this._strategyTracePersistence.getLastStrategyTrace(idStrategy);
+        if (lastStrategyProcess.length > 1) {
+            const pathProcess0 = `${this.IMAGES_FOLDER}/${lastStrategyProcess[0].idProcess}`;
+            const pathProcess1 = `${this.IMAGES_FOLDER}/${lastStrategyProcess[1].idProcess}`;
+            const targetPathBefore = Path.join(__dirname, '..', '..', '..', 'screenTests', lastStrategyProcess[0].idProcess);
+            const targetPathAfter = Path.join(__dirname, '..', '..', '..', 'screenTests', lastStrategyProcess[1].idProcess);
+            const targetPathResult = Path.join(__dirname, '..', '..', '..', 'screenTests', 'result');
+            await this._storageService.emptyFolderBase('screenTests');
+            await this._storageService.downloadFolder(pathProcess0);
+            await this._storageService.downloadFolder(pathProcess1);
+            await this._imageCompareService.compareImagesFromDir(targetPathBefore, targetPathAfter, targetPathResult);
+        }
     }
 
     public async runMobileTest(testName: string, url: string) {
@@ -122,7 +147,7 @@ export class TestRunner {
 
     private async uploadScreenShots() {
         const screenShotsDir = Path.join(__dirname, '..', '..', '..', 'scriptTests');
-        await this._storageService.uploadFromDir(screenShotsDir,  this.currentProcess.idProcess, '.png');
+        await this._storageService.uploadFromDir(screenShotsDir, this.currentProcess.idProcess, '.png');
     }
 
     private async registerStrategyTrace(status: string, trace: string) {

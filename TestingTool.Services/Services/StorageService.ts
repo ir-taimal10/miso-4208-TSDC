@@ -92,18 +92,18 @@ export class StorageService {
         })
     }
 
-    private async emptyFolderBase() {
-        await fs.emptyDirSync(Path.join(this.WORK_FOLDER, 'scriptTests'));
+    public async emptyFolderBase(folder) {
+        await fs.emptyDirSync(Path.join(this.WORK_FOLDER, folder));
     }
 
-    public async downloadFolder(folderPath: string) {
-        await this.emptyFolderBase();
+    public async downloadFolder(originPath: string) {
+        //await this.emptyFolderBase(targetPath);
         const object: any = await this.listObjects();
         let elementsDownloaded = [];
         if (object && object.Contents && object.Contents.length > 0) {
             for (let index = 0; index < object.Contents.length; index++) {
                 const elementData = object.Contents[index];
-                if (elementData.Size != 0 && elementData.Key.indexOf(folderPath) >= 0) {
+                if (elementData.Size != 0 && elementData.Key.indexOf(originPath) >= 0) {
                     elementsDownloaded.push(elementData.Key);
                     const output = await this.downloadFile(elementData.Key);
                     if (elementData.Key.indexOf(".zip") >= 0) {

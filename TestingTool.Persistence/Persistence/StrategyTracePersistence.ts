@@ -20,6 +20,24 @@ export class StrategyTracePersistence {
         return result;
     }
 
+
+    public async getLastStrategyTrace(idStrategy: string): Promise<any> {
+        let result = null;
+        await this._pool.query(`SELECT DISTINCT idProcess, 
+                                                creationDate 
+                                                FROM strategytrace
+                                                where idStrategy = ?
+                                                ORDER BY creationDate desc
+                                                LIMIT 2`,
+            [idStrategy])
+            .then(function (rows) {
+                result = rows.map(row => {
+                    return row;
+                });
+            });
+        return result;
+    }
+
     public async registerStrategyTrace(strategyTrace: IStrategyTrace): Promise<IStrategyTrace> {
         strategyTrace.creationDate = new Date();
         await this._pool.query("insert into strategytrace(idStrategy, idProcess, status, creationDate,trace) values (?,?,?,?,?)",
