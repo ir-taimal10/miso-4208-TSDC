@@ -6,4 +6,7 @@ export interface IStrategy {
     definition: [];
     scriptPath: string;
     creationDate?: Date;
+    headed: boolean;
+    viewportWidth: number;
+    viewportHeight: number;
 }
