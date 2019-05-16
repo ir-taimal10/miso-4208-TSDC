@@ -9,26 +9,38 @@ export class ImageCompareService {
     }
 
     public async compareImagesFromDir(beforePath, afterPath, resultPath) {
+        let dataResult = {};
         if (!fs.existsSync(beforePath)) {
             console.log("no dir ", beforePath);
             return;
         }
         let files = fs.readdirSync(beforePath);
+        console.log('ensure ', resultPath);
+
+        if (!fs.existsSync(resultPath)) {
+            fs.mkdirSync(resultPath);
+        }
+
         for (let i = 0; i < files.length; i++) {
             let beforeFilePath = Path.join(beforePath, files[i]);
             let afterFilePath = Path.join(afterPath, files[i]);
             let resultFilePath = Path.join(resultPath, files[i]);
             const baseName = Path.basename(beforeFilePath);
-            console.log('-- baseName: ', baseName);
+            /*console.log('-- baseName: ', baseName);
             console.log('-- beforeFilePath: ', beforeFilePath);
             console.log('-- afterFilePath: ', afterFilePath);
-            console.log('-- resultFilePath: ', resultFilePath);
-            // await this.executeCompare(beforeFilePath, afterFilePath, resultFilePath);
+            console.log('-- resultFilePath: ', resultFilePath);*/
+
+            dataResult[baseName] = await this.executeCompare(beforeFilePath, afterFilePath, resultFilePath);
         }
+        return dataResult;
     }
 
     public async executeCompare(imageBefore, imageAfter, imageOutput) {
-        await this.getDiff(imageBefore, imageAfter, imageOutput);
+        if (fs.existsSync(imageBefore) && fs.existsSync(imageAfter)) {
+            return await this.getDiff(imageBefore, imageAfter, imageOutput);
+        }
+        return null;
     }
 
     public async getDiff(input_image01, input_image02, output_image) {
@@ -53,8 +65,8 @@ export class ImageCompareService {
             await fs.readFile(input_image02),
             options
         );
-
         await fs.writeFile(output_image, data.getBuffer());
+        return data;
     }
 
 }
