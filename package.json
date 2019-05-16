@@ -9,7 +9,6 @@
     "test": "echo \"test specified\"",
     "test:calabash": "calabash-android run ",
     "test:cucumber": "node ./myCucumber.js scriptTests/cucumber/**/*.feature -f node_modules/cucumber-pretty",
-    "test:cucumber_generation_data": "node ./myCucumber.js scriptTests/cucumber/**/*.feature -f node_modules/cucumber-pretty",
     "test:puppeteer": "jest --detectOpenHandles",
     "test:cypress": "cypress run --record --key cc6808e9-c5b6-4639-a0b7-5df6262b50d6 --headed",
     "server:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
