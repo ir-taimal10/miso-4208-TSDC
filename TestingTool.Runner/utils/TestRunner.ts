@@ -63,7 +63,7 @@ export class TestRunner {
                 } else if (aut.type == "web") {
                     for (let index = 0; index < testStrategy.length; index++) {
                         const testName = testStrategy[index];
-                        if (testName === "vrt") {
+                        if (testName.toLocaleLowerCase() === "vrt") {
                             await this.runVRT(strategy.idStrategy);
                         } else {
                             await this.runWebTest(testName, aut.url);
