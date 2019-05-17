@@ -105,7 +105,7 @@ export class TestRunner {
             await this._storageService.downloadFolder(pathProcess0);
             await this._storageService.downloadFolder(pathProcess1);
             const result = await this._imageCompareService.compareImagesFromDir(targetPathBefore, targetPathAfter, targetPathResult);
-            await this.registerStrategyTrace("VRT", `${result}`);
+            await this.registerStrategyTrace("VRT", JSON.stringify(result));
         }
     }
 

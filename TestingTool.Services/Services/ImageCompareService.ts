@@ -30,8 +30,11 @@ export class ImageCompareService {
             console.log('-- beforeFilePath: ', beforeFilePath);
             console.log('-- afterFilePath: ', afterFilePath);
             console.log('-- resultFilePath: ', resultFilePath);*/
+            const result = await this.executeCompare(beforeFilePath, afterFilePath, resultFilePath);
+            if(result){
+                dataResult[baseName] = result.misMatchPercentage;
+            }
 
-            dataResult[baseName] = await this.executeCompare(beforeFilePath, afterFilePath, resultFilePath);
         }
         return dataResult;
     }
