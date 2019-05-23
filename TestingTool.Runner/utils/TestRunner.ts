@@ -101,7 +101,7 @@ export class TestRunner {
         }
 
         if (customCommandFlag == true) {
-            command = command + customCommand;
+            //command = command + customCommand;
         }
 
         await util.executeCommand(command);
