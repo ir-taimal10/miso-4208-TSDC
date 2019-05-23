@@ -66,7 +66,7 @@ export class TestRunner {
                         if (testName.toLocaleLowerCase() === "vrt") {
                             await this.runVRT(strategy.idStrategy);
                         } else {
-                            await this.runWebTest(testName, aut.url);
+                            await this.runWebTest(testName, aut.url, strategy.headed, strategy.viewportWidth, strategy.viewportHeight);
                         }
                     }
                 } else {
@@ -77,15 +77,33 @@ export class TestRunner {
     }
 
 
-    public async runWebTest(testName: string, url: string) {
+    public async runWebTest(testName: string, url: string, headed: number, viewportWidth: number, viewportHeight: number) {
         console.log("Running test: ", testName);
         await this.registerStrategyTrace("RUNNING", `Running ${testName}`);
         const util = new UtilsService();
         const platform = process.platform;
         let command = 'npm run test:' + testName; // this run in IOS
+        let customCommand = ' bar=';
+        let customCommandFlag = false;
+
         if (platform == 'win32') {
             command = 'npm.cmd run test:' + testName;
         }
+
+        if (viewportWidth != null && viewportHeight !== null) {
+            customCommand = customCommand + "viewportWidth=" + viewportWidth + ",viewportHeight=" + viewportHeight
+            customCommandFlag = true;
+        }
+
+        if (headed == 1) {
+            customCommand = customCommand + " --headed "
+            customCommandFlag = true;
+        }
+
+        if (customCommandFlag == true) {
+            command = command + customCommand;
+        }
+
         await util.executeCommand(command);
         console.log(`Test ${testName}, ${url} finished`, platform);
         await this.uploadScreenShots();
