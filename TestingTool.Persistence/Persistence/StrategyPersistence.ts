@@ -39,7 +39,7 @@ export class StrategyPersistence {
         strategy.idStrategy = Guid.raw();
         strategy.scriptPath = `scriptTests/${strategy.idStrategy}`;
         strategy.creationDate = new Date();
-        await this._pool.query("insert into strategy values(?,?,?,?,?,?,?)",
+        await this._pool.query("insert into strategy values(?,?,?,?,?,?,?,?,?,?)",
             [
                 strategy.idStrategy,
                 strategy.name,
@@ -47,7 +47,10 @@ export class StrategyPersistence {
                 strategy.description,
                 strategy.scriptPath,
                 strategy.creationDate,
-                JSON.stringify(strategy.definition)
+                JSON.stringify(strategy.definition),
+                strategy.headed,
+                strategy.viewportWidth,
+                strategy.viewportHeight
             ])
             .then(function (rows) {
             });
