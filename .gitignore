@@ -305,3 +305,9 @@ screenTests/**/
 **/cypress/**
 **/cypress/**/**
 cypress/**/
+
+**/apks/**
+**/apks/**/**
+apks/**/
+
+

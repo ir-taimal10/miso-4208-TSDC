@@ -5,6 +5,7 @@ export interface IStrategy {
     description?: string;
     definition: [];
     scriptPath: string;
+    mutationPath: string;
     creationDate?: Date;
     headed: boolean;
     viewportWidth: number;

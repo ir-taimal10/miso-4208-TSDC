@@ -57,7 +57,8 @@ export class TestRunner {
             if (aut.type == "mobile") {
                 if (mutationPath) {
                     await this._storageService.downloadFolder(mutationPath);
-                    const apksToTest = await this._storageService.findFilesOnFolder('apks', '.apk');
+                    const apksTempFolder = Path.join(__dirname, '..', '..', '..', 'apks', aut.idAUT);
+                    const apksToTest = await this._storageService.findFilesOnFolder(apksTempFolder, '.apk');
                     for (let index = 0; index < apksToTest.length; index++) {
                         const apkPath = apksToTest[index];
                         console.log('Apk to test path: ', apkPath);
