@@ -101,13 +101,18 @@ export class UtilsService {
     }
 
     public cd(url: string) {
-            cd(url);
+        cd(url);
     }
 
     public executeCommand = command => {
         return new Promise((resolve, reject) => {
             console.log(`UtilsService executeCommand start: command = ${command}`);
-            node_cmd.run(command)
+            node_cmd.run(command, {
+                onData: function (data) {
+                    // print output step by step
+                    console.log(data);
+                }
+            })
                 .then(function (exitCodes) {
                     console.log(`UtilsService executeCommand ends: exitCodes = ${exitCodes}`);
                     resolve();
@@ -117,6 +122,7 @@ export class UtilsService {
                 });
         });
     };
+
 
     public executeCommandsWithOptions = (commands, options) => {
         return new Promise((resolve, reject) => {
