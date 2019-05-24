@@ -53,24 +53,47 @@ export class TestRunner {
             await this.registerStrategyTrace("INIT", `Init task ${idStrategy}`);
             await this._storageService.emptyFolderBase('scriptTests');
             await this._storageService.downloadFolder(strategy.scriptPath);
-            const testStrategy = strategy.definition;
-            if (testStrategy) {
-                if (aut.type == "mobile") {
-                    for (let index = 0; index < testStrategy.length; index++) {
-                        const testName = testStrategy[index];
-                        await this.runMobileTest(testName, aut.url);
+            const mutationPath = strategy.mutationPath;
+            if (aut.type == "mobile") {
+                if (mutationPath) {
+                    await this._storageService.downloadFolder(mutationPath);
+                    const apksToTest = await this._storageService.findFilesOnFolder('apks', '.apk');
+                    for (let index = 0; index < apksToTest.length; index++) {
+                        const apkPath = apksToTest[index];
+                        console.log('Apk to test path: ', apkPath);
+                        await this.runMobileSuite(strategy, aut, apkPath);
                     }
-                } else if (aut.type == "web") {
-                    for (let index = 0; index < testStrategy.length; index++) {
-                        const testName = testStrategy[index];
-                        if (testName.toLocaleLowerCase() === "vrt") {
-                            await this.runVRT(strategy.idStrategy);
-                        } else {
-                            await this.runWebTest(testName, aut.url, strategy.headed, strategy.viewportWidth, strategy.viewportHeight);
-                        }
-                    }
+
                 } else {
-                    console.log("App type not supported ");
+                    await this.runMobileSuite(strategy, aut, aut.url);
+                }
+            } else if (aut.type == "web") {
+                await this.runWebSuite(strategy, aut);
+            } else {
+                console.log("App type not supported ");
+            }
+        }
+    }
+
+    public async runMobileSuite(strategy, aut, apkPath) {
+        const testStrategy = strategy.definition;
+        if (testStrategy) {
+            for (let index = 0; index < testStrategy.length; index++) {
+                const testName = testStrategy[index];
+                await this.runMobileTest(testName, apkPath);
+            }
+        }
+    }
+
+    public async runWebSuite(strategy, aut) {
+        const testStrategy = strategy.definition;
+        if (testStrategy) {
+            for (let index = 0; index < testStrategy.length; index++) {
+                const testName = testStrategy[index];
+                if (testName.toLocaleLowerCase() === "vrt") {
+                    await this.runVRT(strategy.idStrategy);
+                } else {
+                    await this.runWebTest(testName, aut.url, strategy.headed, strategy.viewportWidth, strategy.viewportHeight);
                 }
             }
         }
@@ -96,7 +119,7 @@ export class TestRunner {
         }
 
         if (headed == 1) {
-            customCommand = customCommand + " --headed "
+            customCommand = customCommand + " --headed ";
             customCommandFlag = true;
         }
 

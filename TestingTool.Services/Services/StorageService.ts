@@ -140,6 +140,15 @@ export class StorageService {
     }
 
 
+    public async findFilesOnFolder(folderPath, filter) {
+        const self = this;
+        if (!fs.existsSync(folderPath)) {
+            console.log("no dir ", folderPath);
+            return;
+        }
+        return fs.readdirSync(folderPath);
+    }
+
     public async uploadFileToS3(filePath, key) {
         let location = "";
         const uploadParams = {
