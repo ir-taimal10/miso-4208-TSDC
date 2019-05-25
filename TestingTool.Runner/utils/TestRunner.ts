@@ -56,15 +56,18 @@ export class TestRunner {
             const mutationPath = strategy.mutationPath;
             if (aut.type == "mobile") {
                 if (mutationPath) {
+                    const util = new UtilsService();
+                    //await this.runMobileSuite(strategy, aut, aut.url);
                     await this._storageService.downloadFolder(mutationPath);
-                    const apksTempFolder = Path.join(__dirname, '..', '..', '..', 'apks', aut.idAUT);
+                    const apksTempFolder = Path.join(__dirname, '..', '..', '..', mutationPath);
                     const apksToTest = await this._storageService.findFilesOnFolder(apksTempFolder, '.apk');
                     for (let index = 0; index < apksToTest.length; index++) {
                         const apkPath = apksToTest[index];
                         console.log('Apk to test path: ', apkPath);
-                        await this.runMobileSuite(strategy, aut, apkPath);
+                        const pathMutation = Path.join(__dirname, '..', '..', '..', 'scriptTests','calabash', apkPath)
+                        await util.copyFile(Path.join(__dirname, '..', '..', '..', mutationPath, apkPath), pathMutation);
+                        await this.runMobileSuite(strategy, aut, pathMutation);
                     }
-
                 } else {
                     await this.runMobileSuite(strategy, aut, aut.url);
                 }

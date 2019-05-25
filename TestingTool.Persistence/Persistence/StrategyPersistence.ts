@@ -39,13 +39,14 @@ export class StrategyPersistence {
         strategy.idStrategy = Guid.raw();
         strategy.scriptPath = `scriptTests/${strategy.idStrategy}`;
         strategy.creationDate = new Date();
-        await this._pool.query("insert into strategy values(?,?,?,?,?,?,?,?,?,?)",
+        await this._pool.query("insert into strategy values(?,?,?,?,?,?,?,?,?,?,?)",
             [
                 strategy.idStrategy,
                 strategy.name,
                 strategy.idAUT,
                 strategy.description,
                 strategy.scriptPath,
+                strategy.mutationPath,
                 strategy.creationDate,
                 JSON.stringify(strategy.definition),
                 strategy.headed,
